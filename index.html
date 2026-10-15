@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Tartan Register カラーコードジェネレーター</title>
+<style>
+  body {
+    font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", sans-serif;
+    background: #f4f4f8;
+    margin: 0;
+    padding: 20px;
+    color: #222;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .header h1 {
+    margin-bottom: 5px;
+  }
+  .pdf-notice {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin: 15px auto;
+    font-size: 14px;
+    color: #333;
+    text-align: center;
+    max-width: 700px;
+  }
+  .pdf-notice a {
+    display: inline-block;
+    margin-top: 8px;
+    background: #ffc107;
+    color: #000;
+    padding: 6px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .pdf-notice a:hover {
+    background: #e0a800;
+  }
+
+  .toolbar {
+    max-width: 1000px;
+    margin: 0 auto 20px auto;
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  textarea#output {
+    width: 100%;
+    height: 80px;
+    font-family: monospace;
+    font-size: 14px;
+    box-sizing: border-box;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    resize: vertical;
+  }
+  .buttons {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .buttons button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    background: #4a69bd;
+    color: white;
+  }
+  .buttons button.reset {
+    background: #e55039;
+  }
+  .buttons button:hover {
+    opacity: 0.85;
+  }
+
+  .filters {
+    max-width: 1000px;
+    margin: 0 auto 20px auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+  .filters button {
+    padding: 6px 14px;
+    border: 1px solid #999;
+    border-radius: 20px;
+    background: white;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .filters button.active {
+    background: #333;
+    color: white;
+    border-color: #333;
+  }
+
+  .grid {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .card {
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: transform 0.1s;
+    font-size: 12px;
+    user-select: none;
+  }
+  .card:hover {
+    transform: scale(1.05);
+  }
+  .card .abbr {
+    font-weight: bold;
+    font-size: 15px;
+  }
+  .card .name {
+    margin: 3px 0;
+  }
+  .card .hex {
+    font-family: monospace;
+    font-size: 11px;
+  }
+
+  #notify {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #333;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 999;
+  }
+  #notify.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🎨 Tartan Register カラーコードジェネレーター</h1>
+  <p>色カードをクリックするとコードが下のテキストエリアに追加されます</p>
+</div>
+
+<div class="pdf-notice">
+  ⚠️ 色は画面環境により見え方が異なる場合があります。<br>
+  正確な色の確認は公式PDFをご覧ください 👉
+  <br>
+  <a href="https://www.tartanregister.gov.uk/docs/Colour_shades.pdf" target="_blank" rel="noopener noreferrer">
+    📄 公式カラーシェードPDFを開く
+  </a>
+</div>
+
+<div class="toolbar">
+  <textarea id="output" placeholder="ここにコードが追加されます。例: LR=#F04DB0#LIGHTRED;"></textarea>
+  <div class="buttons">
+    <button onclick="copyAll()">📋 全部コピー</button>
+    <button class="reset" onclick="resetOutput()">🗑️ リセット</button>
+  </div>
+</div>
+
+<div class="filters" id="filters"></div>
+
+<div class="grid" id="grid"></div>
+
+<div id="notify"></div>
+
+<script>
+const colors = [
+    {abbr:"LR", name:"Light Red", hex:"#F4CCCC", category:"red"},
+    {abbr:"LR", name:"Light Red", hex:"#E87878", category:"red"},
+    {abbr:"LR", name:"Light Red", hex:"#F04DB0", category:"red"},
+    {abbr:"R", name:"Red", hex:"#A00048", category:"red"},
+    {abbr:"R", name:"Red", hex:"#FA4B00", category:"red"},
+    {abbr:"R", name:"Red", hex:"#FF0000", category:"red"},
+    {abbr:"R", name:"Red", hex:"#DC0000", category:"red"},
+    {abbr:"R", name:"Red", hex:"#C80000", category:"red"},
+    {abbr:"R", name:"Red", hex:"#C82828", category:"red"},
+    {abbr:"R", name:"Red", hex:"#C8002C", category:"red"},
+    {abbr:"R", name:"Red", hex:"#B03000", category:"red"},
+    {abbr:"DR", name:"Dark Red", hex:"#A00000", category:"red"},
+    {abbr:"DR", name:"Dark Red", hex:"#960000", category:"red"},
+    {abbr:"DR", name:"Dark Red", hex:"#960028", category:"red"},
+    {abbr:"DR", name:"Dark Red", hex:"#880000", category:"red"},
+    {abbr:"DR", name:"Dark Red", hex:"#800028", category:"red"},
+    {abbr:"DR", name:"Dark Red", hex:"#781C38", category:"red"},
+    {abbr:"DR", name:"Dark Red", hex:"#4C0000", category:"red"},
+    {abbr:"DR", name:"Dark Red", hex:"#901C38", category:"red"},
+    {abbr:"DR", name:"Dark Red", hex:"#680028", category:"red"},
+    {abbr:"O", name:"Orange", hex:"#EC8048", category:"orange"},
+    {abbr:"O", name:"Orange", hex:"#E86000", category:"orange"},
+    {abbr:"O", name:"Orange", hex:"#FF5000", category:"orange"},
+    {abbr:"O", name:"Orange", hex:"#DC943C", category:"orange"},
+    {abbr:"O", name:"Orange", hex:"#D87C00", category:"orange"},
+    {abbr:"DO", name:"Dark Orange", hex:"#BE7832", category:"orange"},
+    {abbr:"LY", name:"Light Yellow", hex:"#F9F5C8", category:"yellow"},
+    {abbr:"LY", name:"Light Yellow", hex:"#F8E38C", category:"yellow"},
+    {abbr:"Y", name:"Yellow", hex:"#FFFF00", category:"yellow"},
+    {abbr:"Y", name:"Yellow", hex:"#FFE600", category:"yellow"},
+    {abbr:"Y", name:"Yellow", hex:"#FFD700", category:"yellow"},
+    {abbr:"Y", name:"Yellow", hex:"#FCCC00", category:"yellow"},
+    {abbr:"Y", name:"Yellow", hex:"#E0A126", category:"yellow"},
+    {abbr:"Y", name:"Yellow", hex:"#E8C000", category:"yellow"},
+    {abbr:"Y", name:"Yellow", hex:"#D8B000", category:"yellow"},
+    {abbr:"DY", name:"Dark Yellow", hex:"#BC8C00", category:"yellow"},
+    {abbr:"DY", name:"Dark Yellow", hex:"#C89800", category:"yellow"},
+    {abbr:"DY", name:"Dark Yellow", hex:"#C88C00", category:"yellow"},
+    {abbr:"LG", name:"Light Green", hex:"#789484", category:"green"},
+    {abbr:"LG", name:"Light Green", hex:"#C4BC68", category:"green"},
+    {abbr:"LG", name:"Light Green", hex:"#9C9C00", category:"green"},
+    {abbr:"LG", name:"Light Green", hex:"#ACD74A", category:"green"},
+    {abbr:"LG", name:"Light Green", hex:"#86C67C", category:"green"},
+    {abbr:"LG", name:"Light Green", hex:"#649848", category:"green"},
+    {abbr:"G", name:"Green", hex:"#008B00", category:"green"},
+    {abbr:"G", name:"Green", hex:"#408060", category:"green"},
+    {abbr:"G", name:"Green", hex:"#289C18", category:"green"},
+    {abbr:"G", name:"Green", hex:"#006400", category:"green"},
+    {abbr:"G", name:"Green", hex:"#007800", category:"green"},
+    {abbr:"G", name:"Green", hex:"#3F5642", category:"green"},
+    {abbr:"G", name:"Green", hex:"#767E52", category:"green"},
+    {abbr:"G", name:"Green", hex:"#5C6428", category:"green"},
+    {abbr:"G", name:"Green", hex:"#00643C", category:"green"},
+    {abbr:"G", name:"Green", hex:"#146400", category:"green"},
+    {abbr:"G", name:"Green", hex:"#006818", category:"green"},
+    {abbr:"G", name:"Green", hex:"#004C00", category:"green"},
+    {abbr:"G", name:"Green", hex:"#285800", category:"green"},
+    {abbr:"G", name:"Green", hex:"#005020", category:"green"},
+    {abbr:"G", name:"Green", hex:"#005448", category:"green"},
+    {abbr:"DG", name:"Dark Green", hex:"#003C14", category:"green"},
+    {abbr:"DG", name:"Dark Green", hex:"#003820", category:"green"},
+    {abbr:"DG", name:"Dark Green", hex:"#004028", category:"green"},
+    {abbr:"DG", name:"Dark Green", hex:"#002814", category:"green"},
+    {abbr:"B", name:"Blue", hex:"#BCC3D2", category:"blue"},
+    {abbr:"B", name:"Blue", hex:"#048888", category:"blue"},
+    {abbr:"B", name:"Blue", hex:"#3C82AF", category:"blue"},
+    {abbr:"B", name:"Blue", hex:"#5C8CA8", category:"blue"},
+    {abbr:"B", name:"Blue", hex:"#2888C4", category:"blue"},
+    {abbr:"B", name:"Blue", hex:"#48A4C0", category:"blue"},
+    {abbr:"B", name:"Blue", hex:"#2474E8", category:"blue"},
+    {abbr:"B", name:"Blue", hex:"#0596FA", category:"blue"},
+    {abbr:"B", name:"Blue", hex:"#0000FF", category:"blue"},
+    {abbr:"B", name:"Blue", hex:"#3850C8", category:"blue"},
+    {abbr:"B", name:"Blue", hex:"#788CB4", category:"blue"},
+    {abbr:"B", name:"Blue", hex:"#5F749C", category:"blue"},
+    {abbr:"B", name:"Blue", hex:"#1870A4", category:"blue"},
+    {abbr:"B", name:"Blue", hex:"#1474B4", category:"blue"},
+    {abbr:"B", name:"Blue", hex:"#0000CD", category:"blue"},
+    {abbr:"B", name:"Blue", hex:"#2C4084", category:"blue"},
+    {abbr:"LB", name:"Light Blue", hex:"#98C8E8", category:"blue"},
+    {abbr:"LB", name:"Light Blue", hex:"#82CFFD", category:"blue"},
+    {abbr:"LB", name:"Light Blue", hex:"#00FCFC", category:"blue"},
+    {abbr:"DB", name:"Dark Blue", hex:"#055183", category:"blue"},
+    {abbr:"DB", name:"Dark Blue", hex:"#003C64", category:"blue"},
+    {abbr:"DB", name:"Dark Blue", hex:"#00008C", category:"blue"},
+    {abbr:"DB", name:"Dark Blue", hex:"#2C2C80", category:"blue"},
+    {abbr:"DB", name:"Dark Blue", hex:"#1C0070", category:"blue"},
+    {abbr:"DB", name:"Dark Blue", hex:"#000064", category:"blue"},
+    {abbr:"DB", name:"Dark Blue", hex:"#202060", category:"blue"},
+    {abbr:"DB", name:"Dark Blue", hex:"#000048", category:"blue"},
+    {abbr:"DB", name:"Dark Blue", hex:"#141E46", category:"blue"},
+    {abbr:"DB", name:"Dark Blue", hex:"#1C1C50", category:"blue"},
+    {abbr:"LP", name:"Light Purple", hex:"#A8ACE8", category:"purple"},
+    {abbr:"LP", name:"Light Purple", hex:"#C49CD8", category:"purple"},
+    {abbr:"LP", name:"Light Purple", hex:"#806D84", category:"purple"},
+    {abbr:"LP", name:"Light Purple", hex:"#9C68A4", category:"purple"},
+    {abbr:"P", name:"Purple", hex:"#9058D8", category:"purple"},
+    {abbr:"P", name:"Purple", hex:"#AA00FF", category:"purple"},
+    {abbr:"P", name:"Purple", hex:"#B458AC", category:"purple"},
+    {abbr:"P", name:"Purple", hex:"#6C0070", category:"purple"},
+    {abbr:"P", name:"Purple", hex:"#5A008C", category:"purple"},
+    {abbr:"P", name:"Purple", hex:"#64008C", category:"purple"},
+    {abbr:"P", name:"Purple", hex:"#780078", category:"purple"},
+    {abbr:"DP", name:"Dark Purple", hex:"#440044", category:"purple"},
+    {abbr:"DP", name:"Dark Purple", hex:"#1E0948", category:"purple"},
+    {abbr:"W", name:"White", hex:"#E5DDD1", category:"white"},
+    {abbr:"W", name:"White", hex:"#E8CCB8", category:"white"},
+    {abbr:"W", name:"White", hex:"#F0E0C8", category:"white"},
+    {abbr:"W", name:"White", hex:"#FCFCFC", category:"white"},
+    {abbr:"W", name:"White", hex:"#FFFFFF", category:"white"},
+    {abbr:"W", name:"White", hex:"#F8F8F8", category:"white"},
+    {abbr:"LN", name:"Light Grey", hex:"#E0E0E0", category:"grey"},
+    {abbr:"N", name:"Grey", hex:"#C8C8C8", category:"grey"},
+    {abbr:"N", name:"Grey", hex:"#C0C0C0", category:"grey"},
+    {abbr:"N", name:"Grey", hex:"#B0B0B0", category:"grey"},
+    {abbr:"N", name:"Grey", hex:"#A0A0A0", category:"grey"},
+    {abbr:"N", name:"Grey", hex:"#808080", category:"grey"},
+    {abbr:"N", name:"Grey", hex:"#888888", category:"grey"},
+    {abbr:"N", name:"Grey", hex:"#646464", category:"grey"},
+    {abbr:"DN", name:"Dark Grey", hex:"#505050", category:"grey"},
+    {abbr:"DN", name:"Dark Grey", hex:"#555A64", category:"grey"},
+    {abbr:"DN", name:"Dark Grey", hex:"#1C1714", category:"grey"},
+    {abbr:"DN", name:"Dark Grey", hex:"#14283C", category:"grey"},
+    {abbr:"DN", name:"Dark Grey", hex:"#1C1C1C", category:"grey"},
+    {abbr:"K", name:"Black", hex:"#101010", category:"black"},
+    {abbr:"K", name:"Black", hex:"#000000", category:"black"},
+    {abbr:"LT", name:"Light Brown", hex:"#A08858", category:"brown"},
+    {abbr:"LT", name:"Light Brown", hex:"#8C7038", category:"brown"},
+    {abbr:"LT", name:"Light Brown", hex:"#A07C58", category:"brown"},
+    {abbr:"LT", name:"Light Brown", hex:"#B07430", category:"brown"},
+    {abbr:"T", name:"Brown", hex:"#98481C", category:"brown"},
+    {abbr:"T", name:"Brown", hex:"#603800", category:"brown"},
+    {abbr:"T", name:"Brown", hex:"#604000", category:"brown"},
+    {abbr:"T", name:"Brown", hex:"#503C14", category:"brown"},
+    {abbr:"DT", name:"Dark Brown", hex:"#4C3428", category:"brown"},
+    {abbr:"DT", name:"Dark Brown", hex:"#441800", category:"brown"},
+    {abbr:"DT", name:"Dark Brown", hex:"#230D00", category:"brown"}
+];
+
+const categories = [
+  {key:"all", label:"全て"},
+  {key:"red", label:"赤系"},
+  {key:"orange", label:"橙系"},
+  {key:"yellow", label:"黄系"},
+  {key:"green", label:"緑系"},
+  {key:"blue", label:"青系"},
+  {key:"purple", label:"紫系"},
+  {key:"white", label:"白系"},
+  {key:"grey", label:"灰系"},
+  {key:"black", label:"黒"},
+  {key:"brown", label:"茶系"}
+];
+
+let currentFilter = "all";
+
+function getContrastColor(hex) {
+  const r = parseInt(hex.substr(1,2),16);
+  const g = parseInt(hex.substr(3,2),16);
+  const b = parseInt(hex.substr(5,2),16);
+  const brightness = (r*299 + g*587 + b*114) / 1000;
+  return brightness > 150 ? "#000000" : "#ffffff";
+}
+
+function renderFilters() {
+  const container = document.getElementById("filters");
+  container.innerHTML = "";
+  categories.forEach(cat => {
+    const btn = document.createElement("button");
+    btn.textContent = cat.label;
+    if (cat.key === currentFilter) btn.classList.add("active");
+    btn.onclick = () => {
+      currentFilter = cat.key;
+      renderFilters();
+      renderGrid();
+    };
+    container.appendChild(btn);
+  });
+}
+
+function renderGrid() {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  const filtered = currentFilter === "all" ? colors : colors.filter(c => c.category === currentFilter);
+  filtered.forEach(c => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.background = c.hex;
+    const textColor = getContrastColor(c.hex);
+    card.style.color = textColor;
+    card.innerHTML = `
+      <div class="abbr">${c.abbr}</div>
+      <div class="name">${c.name}</div>
+      <div class="hex">${c.hex}</div>
+    `;
+    card.onclick = () => addColor(c);
+    grid.appendChild(card);
+  });
+}
+
+function addColor(c) {
+  const code = `${c.abbr}=${c.hex}#${c.name.toUpperCase().replace(/\s+/g,'')};`;
+  const output = document.getElementById("output");
+  output.value += (output.value ? "\n" : "") + code;
+  navigator.clipboard.writeText(code).catch(()=>{});
+  showNotify(`コピーしました: ${code}`);
+}
+
+function copyAll() {
+  const output = document.getElementById("output");
+  if (!output.value) {
+    showNotify("コピーする内容がありません");
+    return;
+  }
+  navigator.clipboard.writeText(output.value).then(() => {
+    showNotify("全てコピーしました！");
+  }).catch(() => {
+    showNotify("コピーに失敗しました");
+  });
+}
+
+function resetOutput() {
+  document.getElementById("output").value = "";
+  showNotify("リセットしました");
+}
+
+function showNotify(msg) {
+  const el = document.getElementById("notify");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(window._notifyTimer);
+  window._notifyTimer = setTimeout(() => {
+    el.classList.remove("show");
+  }, 2000);
+}
+
+renderFilters();
+renderGrid();
+</script>
+
+</body>
+</html>
