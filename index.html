@@ -11,13 +11,7 @@
     padding: 20px;
     color: #222;
   }
-  .header {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .header h1 {
-    margin-bottom: 5px;
-  }
+  .header { text-align: center; margin-bottom: 20px; }
   .pdf-notice {
     background: #fff3cd;
     border: 2px solid #ffc107;
@@ -25,7 +19,6 @@
     padding: 15px 20px;
     margin: 15px auto;
     font-size: 14px;
-    color: #333;
     text-align: center;
     max-width: 700px;
   }
@@ -39,129 +32,99 @@
     text-decoration: none;
     font-weight: bold;
   }
-  .pdf-notice a:hover {
-    background: #e0a800;
-  }
+  .pdf-notice a:hover { background: #e0a800; }
 
-  .toolbar {
+  .palette-container {
     max-width: 1000px;
     margin: 0 auto 20px auto;
-    background: white;
+    background: #fff;
+    border: 2px solid #4a69bd;
     border-radius: 10px;
     padding: 15px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   }
-  textarea#output {
-    width: 100%;
-    height: 80px;
-    font-family: monospace;
-    font-size: 14px;
-    box-sizing: border-box;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    resize: vertical;
-  }
-  .buttons {
-    margin-top: 10px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .buttons button {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
+  .palette-container h3 { margin: 0 0 10px 0; font-size: 15px; }
+  .palette-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+  .palette-item {
+    position: relative;
+    width: 70px;
+    text-align: center;
     cursor: pointer;
-    font-size: 14px;
-    background: #4a69bd;
-    color: white;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    transition: transform 0.15s;
   }
-  .buttons button.reset {
-    background: #e55039;
+  .palette-item:hover { transform: scale(1.08); }
+  .palette-item .swatch-color { width: 100%; height: 45px; }
+  .palette-item .swatch-label {
+    font-size: 10px; padding: 3px 0; background: white; font-weight: bold;
   }
-  .buttons button:hover {
-    opacity: 0.85;
+  .palette-item .remove-x {
+    position: absolute; top: 2px; right: 2px;
+    background: rgba(0,0,0,0.65); color: white;
+    border-radius: 50%; width: 16px; height: 16px;
+    font-size: 10px; line-height: 16px;
   }
+  .empty-message { color: #999; font-style: italic; margin: 0; }
+
+  .toolbar {
+    max-width: 1000px; margin: 0 auto 20px auto;
+    background: white; border-radius: 10px; padding: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  textarea#output {
+    width: 100%; height: 80px; font-family: monospace; font-size: 14px;
+    box-sizing: border-box; padding: 8px; border: 1px solid #ccc;
+    border-radius: 6px; resize: vertical;
+  }
+  .buttons { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .buttons button {
+    padding: 8px 16px; border: none; border-radius: 6px;
+    cursor: pointer; font-size: 14px; background: #4a69bd; color: white;
+  }
+  .buttons button.reset { background: #e55039; }
+  .buttons button:hover { opacity: 0.85; }
 
   .filters {
-    max-width: 1000px;
-    margin: 0 auto 20px auto;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
+    max-width: 1000px; margin: 0 auto 20px auto;
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
   }
   .filters button {
-    padding: 6px 14px;
-    border: 1px solid #999;
-    border-radius: 20px;
-    background: white;
-    cursor: pointer;
-    font-size: 13px;
+    padding: 6px 14px; border: 1px solid #999; border-radius: 20px;
+    background: white; cursor: pointer; font-size: 13px;
   }
-  .filters button.active {
-    background: #333;
-    color: white;
-    border-color: #333;
-  }
+  .filters button.active { background: #333; color: white; border-color: #333; }
 
   .grid {
-    max-width: 1000px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    max-width: 1000px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 10px;
   }
   .card {
-    border-radius: 8px;
-    padding: 10px;
-    cursor: pointer;
-    text-align: center;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-    transition: transform 0.1s;
-    font-size: 12px;
-    user-select: none;
+    border-radius: 8px; padding: 10px; cursor: pointer; text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2); transition: transform 0.1s;
+    font-size: 12px; user-select: none;
   }
-  .card:hover {
-    transform: scale(1.05);
-  }
-  .card .abbr {
-    font-weight: bold;
-    font-size: 15px;
-  }
-  .card .name {
-    margin: 3px 0;
-  }
-  .card .hex {
-    font-family: monospace;
-    font-size: 11px;
-  }
+  .card:hover { transform: scale(1.05); }
+  .card .abbr { font-weight: bold; font-size: 15px; }
+  .card .name { margin: 3px 0; }
+  .card .hex { font-family: monospace; font-size: 11px; }
 
   #notify {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
+    position: fixed; bottom: 20px; left: 50%;
     transform: translateX(-50%) translateY(100px);
-    background: #333;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 20px;
-    opacity: 0;
-    transition: all 0.3s;
-    z-index: 999;
+    background: #333; color: white; padding: 10px 20px;
+    border-radius: 20px; opacity: 0; transition: all 0.3s; z-index: 999;
   }
-  #notify.show {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-  }
+  #notify.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 </style>
 </head>
 <body>
 
 <div class="header">
   <h1>🎨 Tartan Register カラーコードジェネレーター</h1>
-  <p>色カードをクリックするとコードが下のテキストエリアに追加されます</p>
+  <p>色カードをクリックするとパレットとコードに追加されます</p>
 </div>
 
 <div class="pdf-notice">
@@ -171,6 +134,13 @@
   <a href="https://www.tartanregister.gov.uk/docs/Colour_shades.pdf" target="_blank" rel="noopener noreferrer">
     📄 公式カラーシェードPDFを開く
   </a>
+</div>
+
+<div class="palette-container">
+  <h3>🎨 選んだ色のパレット（クリックで削除）</h3>
+  <div id="paletteSwatches" class="palette-swatches">
+    <p class="empty-message">まだ色が選ばれていません</p>
+  </div>
 </div>
 
 <div class="toolbar">
@@ -189,6 +159,7 @@
 
 <script>
 const colors = [
+    // ===== 赤系 =====
     {abbr:"LR", name:"Light Red", hex:"#F4CCCC", category:"red"},
     {abbr:"LR", name:"Light Red", hex:"#E87878", category:"red"},
     {abbr:"LR", name:"Light Red", hex:"#F04DB0", category:"red"},
@@ -209,12 +180,16 @@ const colors = [
     {abbr:"DR", name:"Dark Red", hex:"#4C0000", category:"red"},
     {abbr:"DR", name:"Dark Red", hex:"#901C38", category:"red"},
     {abbr:"DR", name:"Dark Red", hex:"#680028", category:"red"},
+
+    // ===== 橙系 =====
     {abbr:"O", name:"Orange", hex:"#EC8048", category:"orange"},
     {abbr:"O", name:"Orange", hex:"#E86000", category:"orange"},
     {abbr:"O", name:"Orange", hex:"#FF5000", category:"orange"},
     {abbr:"O", name:"Orange", hex:"#DC943C", category:"orange"},
     {abbr:"O", name:"Orange", hex:"#D87C00", category:"orange"},
     {abbr:"DO", name:"Dark Orange", hex:"#BE7832", category:"orange"},
+
+    // ===== 黄系 =====
     {abbr:"LY", name:"Light Yellow", hex:"#F9F5C8", category:"yellow"},
     {abbr:"LY", name:"Light Yellow", hex:"#F8E38C", category:"yellow"},
     {abbr:"Y", name:"Yellow", hex:"#FFFF00", category:"yellow"},
@@ -227,6 +202,8 @@ const colors = [
     {abbr:"DY", name:"Dark Yellow", hex:"#BC8C00", category:"yellow"},
     {abbr:"DY", name:"Dark Yellow", hex:"#C89800", category:"yellow"},
     {abbr:"DY", name:"Dark Yellow", hex:"#C88C00", category:"yellow"},
+
+    // ===== 緑系 =====
     {abbr:"LG", name:"Light Green", hex:"#789484", category:"green"},
     {abbr:"LG", name:"Light Green", hex:"#C4BC68", category:"green"},
     {abbr:"LG", name:"Light Green", hex:"#9C9C00", category:"green"},
@@ -252,6 +229,8 @@ const colors = [
     {abbr:"DG", name:"Dark Green", hex:"#003820", category:"green"},
     {abbr:"DG", name:"Dark Green", hex:"#004028", category:"green"},
     {abbr:"DG", name:"Dark Green", hex:"#002814", category:"green"},
+
+    // ===== 青系 =====
     {abbr:"B", name:"Blue", hex:"#BCC3D2", category:"blue"},
     {abbr:"B", name:"Blue", hex:"#048888", category:"blue"},
     {abbr:"B", name:"Blue", hex:"#3C82AF", category:"blue"},
@@ -281,6 +260,8 @@ const colors = [
     {abbr:"DB", name:"Dark Blue", hex:"#000048", category:"blue"},
     {abbr:"DB", name:"Dark Blue", hex:"#141E46", category:"blue"},
     {abbr:"DB", name:"Dark Blue", hex:"#1C1C50", category:"blue"},
+
+    // ===== 紫系 =====
     {abbr:"LP", name:"Light Purple", hex:"#A8ACE8", category:"purple"},
     {abbr:"LP", name:"Light Purple", hex:"#C49CD8", category:"purple"},
     {abbr:"LP", name:"Light Purple", hex:"#806D84", category:"purple"},
@@ -294,27 +275,35 @@ const colors = [
     {abbr:"P", name:"Purple", hex:"#780078", category:"purple"},
     {abbr:"DP", name:"Dark Purple", hex:"#440044", category:"purple"},
     {abbr:"DP", name:"Dark Purple", hex:"#1E0948", category:"purple"},
+
+    // ===== 白系 =====
     {abbr:"W", name:"White", hex:"#E5DDD1", category:"white"},
     {abbr:"W", name:"White", hex:"#E8CCB8", category:"white"},
     {abbr:"W", name:"White", hex:"#F0E0C8", category:"white"},
     {abbr:"W", name:"White", hex:"#FCFCFC", category:"white"},
     {abbr:"W", name:"White", hex:"#FFFFFF", category:"white"},
     {abbr:"W", name:"White", hex:"#F8F8F8", category:"white"},
-    {abbr:"LN", name:"Light Grey", hex:"#E0E0E0", category:"grey"},
-    {abbr:"N", name:"Grey", hex:"#C8C8C8", category:"grey"},
-    {abbr:"N", name:"Grey", hex:"#C0C0C0", category:"grey"},
-    {abbr:"N", name:"Grey", hex:"#B0B0B0", category:"grey"},
-    {abbr:"N", name:"Grey", hex:"#A0A0A0", category:"grey"},
-    {abbr:"N", name:"Grey", hex:"#808080", category:"grey"},
-    {abbr:"N", name:"Grey", hex:"#888888", category:"grey"},
-    {abbr:"N", name:"Grey", hex:"#646464", category:"grey"},
-    {abbr:"DN", name:"Dark Grey", hex:"#505050", category:"grey"},
-    {abbr:"DN", name:"Dark Grey", hex:"#555A64", category:"grey"},
-    {abbr:"DN", name:"Dark Grey", hex:"#1C1714", category:"grey"},
-    {abbr:"DN", name:"Dark Grey", hex:"#14283C", category:"grey"},
-    {abbr:"DN", name:"Dark Grey", hex:"#1C1C1C", category:"grey"},
+
+    // ===== 灰系（略号を Gy/LGy/DGy に修正） =====
+    {abbr:"LGy", name:"Light Grey", hex:"#E0E0E0", category:"grey"},
+    {abbr:"Gy", name:"Grey", hex:"#C8C8C8", category:"grey"},
+    {abbr:"Gy", name:"Grey", hex:"#C0C0C0", category:"grey"},
+    {abbr:"Gy", name:"Grey", hex:"#B0B0B0", category:"grey"},
+    {abbr:"Gy", name:"Grey", hex:"#A0A0A0", category:"grey"},
+    {abbr:"Gy", name:"Grey", hex:"#808080", category:"grey"},
+    {abbr:"Gy", name:"Grey", hex:"#888888", category:"grey"},
+    {abbr:"Gy", name:"Grey", hex:"#646464", category:"grey"},
+    {abbr:"DGy", name:"Dark Grey", hex:"#505050", category:"grey"},
+    {abbr:"DGy", name:"Dark Grey", hex:"#555A64", category:"grey"},
+    {abbr:"DGy", name:"Dark Grey", hex:"#1C1714", category:"grey"},
+    {abbr:"DGy", name:"Dark Grey", hex:"#14283C", category:"grey"},
+    {abbr:"DGy", name:"Dark Grey", hex:"#1C1C1C", category:"grey"},
+
+    // ===== 黒 =====
     {abbr:"K", name:"Black", hex:"#101010", category:"black"},
     {abbr:"K", name:"Black", hex:"#000000", category:"black"},
+
+    // ===== 茶系 =====
     {abbr:"LT", name:"Light Brown", hex:"#A08858", category:"brown"},
     {abbr:"LT", name:"Light Brown", hex:"#8C7038", category:"brown"},
     {abbr:"LT", name:"Light Brown", hex:"#A07C58", category:"brown"},
@@ -328,6 +317,7 @@ const colors = [
     {abbr:"DT", name:"Dark Brown", hex:"#230D00", category:"brown"}
 ];
 
+// ===== カテゴリー一覧 =====
 const categories = [
   {key:"all", label:"全て"},
   {key:"red", label:"赤系"},
@@ -342,8 +332,11 @@ const categories = [
   {key:"brown", label:"茶系"}
 ];
 
+// ===== 状態管理 =====
+let selectedColors = [];
 let currentFilter = "all";
 
+// ===== 文字色を自動調整 =====
 function getContrastColor(hex) {
   const r = parseInt(hex.substr(1,2),16);
   const g = parseInt(hex.substr(3,2),16);
@@ -352,6 +345,7 @@ function getContrastColor(hex) {
   return brightness > 150 ? "#000000" : "#ffffff";
 }
 
+// ===== フィルターボタン描画 =====
 function renderFilters() {
   const container = document.getElementById("filters");
   container.innerHTML = "";
@@ -368,6 +362,7 @@ function renderFilters() {
   });
 }
 
+// ===== カラーカード描画 =====
 function renderGrid() {
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
@@ -376,8 +371,7 @@ function renderGrid() {
     const card = document.createElement("div");
     card.className = "card";
     card.style.background = c.hex;
-    const textColor = getContrastColor(c.hex);
-    card.style.color = textColor;
+    card.style.color = getContrastColor(c.hex);
     card.innerHTML = `
       <div class="abbr">${c.abbr}</div>
       <div class="name">${c.name}</div>
@@ -388,14 +382,52 @@ function renderGrid() {
   });
 }
 
+// ===== 色を追加（パレット＋テキスト欄＋自動コピー） =====
 function addColor(c) {
   const code = `${c.abbr}=${c.hex}#${c.name.toUpperCase().replace(/\s+/g,'')};`;
-  const output = document.getElementById("output");
-  output.value += (output.value ? "\n" : "") + code;
+  selectedColors.push({...c, code});
+  renderPalette();
+  updateOutput();
   navigator.clipboard.writeText(code).catch(()=>{});
   showNotify(`コピーしました: ${code}`);
 }
 
+// ===== パレットから削除 =====
+function removeFromPalette(index) {
+  const removed = selectedColors[index];
+  selectedColors.splice(index, 1);
+  renderPalette();
+  updateOutput();
+  showNotify(`${removed.name} を削除しました`);
+}
+
+// ===== パレット表示更新 =====
+function renderPalette() {
+  const container = document.getElementById("paletteSwatches");
+  if (selectedColors.length === 0) {
+    container.innerHTML = '<p class="empty-message">まだ色が選ばれていません</p>';
+    return;
+  }
+  container.innerHTML = "";
+  selectedColors.forEach((c, index) => {
+    const item = document.createElement("div");
+    item.className = "palette-item";
+    item.onclick = () => removeFromPalette(index);
+    item.innerHTML = `
+      <div class="remove-x">×</div>
+      <div class="swatch-color" style="background-color:${c.hex};"></div>
+      <div class="swatch-label">${c.abbr}</div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+// ===== テキストエリア更新 =====
+function updateOutput() {
+  document.getElementById("output").value = selectedColors.map(c => c.code).join("\n");
+}
+
+// ===== 全部コピー =====
 function copyAll() {
   const output = document.getElementById("output");
   if (!output.value) {
@@ -409,23 +441,27 @@ function copyAll() {
   });
 }
 
+// ===== リセット =====
 function resetOutput() {
-  document.getElementById("output").value = "";
+  selectedColors = [];
+  renderPalette();
+  updateOutput();
   showNotify("リセットしました");
 }
 
+// ===== 通知表示 =====
 function showNotify(msg) {
   const el = document.getElementById("notify");
   el.textContent = msg;
   el.classList.add("show");
   clearTimeout(window._notifyTimer);
-  window._notifyTimer = setTimeout(() => {
-    el.classList.remove("show");
-  }, 2000);
+  window._notifyTimer = setTimeout(() => el.classList.remove("show"), 2000);
 }
 
+// ===== 初期化 =====
 renderFilters();
 renderGrid();
+renderPalette();
 </script>
 
 </body>
