@@ -16,7 +16,7 @@
   header p { color: #6b4226; font-size: 13px; margin-top: 4px; }
 
   .container {
-    display: flex; gap: 20px; max-width: 1200px; margin: 0 auto;
+    display: flex; gap: 20px; max-width: 1240px; margin: 0 auto;
     flex-wrap: wrap;
   }
   .panel {
@@ -26,14 +26,19 @@
   .left-panel { flex: 1.2; min-width: 340px; }
   .right-panel { flex: 1; min-width: 340px; }
 
+  /* マニュアル */
   .manual {
     background: #fffdf8; border: 2px solid #c9972b;
-    border-radius: 10px; padding: 14px 16px; margin-bottom: 16px;
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 18px;
     font-size: 13px; line-height: 1.9;
   }
   .manual h2 { margin:0 0 8px; font-size:15px; color:#8B2131; }
-  .manual ol { margin: 0; padding-left: 20px; }
-  .manual li { margin-bottom: 4px; }
+  .manual p { margin: 0 0 6px; }
+  .manual .step { display:flex; gap:8px; margin-bottom:6px; align-items:flex-start; }
+  .manual .num {
+    flex-shrink:0; width:20px; height:20px; border-radius:50%;
+    background:#8B2131; color:#fff; font-size:11px; text-align:center; line-height:20px;
+  }
 
   .cat-filters {
     display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; margin-top: 6px;
@@ -65,8 +70,8 @@
   .name-input-wrap { text-align: right; margin-bottom: 12px; }
   .name-input-wrap label { font-size:12px; color:#6b4226; display:block; margin-bottom:4px;}
   .name-input-wrap input {
-    font-size: 16px; padding: 8px 10px; border:1px solid #ccc;
-    border-radius: 6px; width: 100%; text-align:right;
+    font-size: 30px; padding: 8px 10px; border:1px solid #ccc;
+    border-radius: 6px; width: 100%; text-align:right; font-family: serif;
   }
 
   .selected-list { max-height: 240px; overflow-y:auto; margin-bottom: 14px; }
@@ -107,7 +112,7 @@
   .btn-copy { background:#5C6D5E; }
 
   textarea#submissionText {
-    width: 100%; height: 140px; font-size: 11px; padding: 8px;
+    width: 100%; height: 150px; font-size: 11px; padding: 8px;
     border: 1px solid #ccc; border-radius: 6px; font-family: monospace;
   }
 
@@ -119,12 +124,12 @@
   .toast.show { opacity: 1; }
 
   #posterOverlay {
-    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7);
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75);
     z-index: 1000; align-items:center; justify-content:center; flex-direction:column; gap:12px;
     padding: 20px; overflow:auto;
   }
   #posterOverlay.show { display:flex; }
-  #posterCanvas { max-width: 90vw; max-height: 75vh; background:#fff; box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+  #posterCanvas { max-width: 90vw; max-height: 80vh; background:#fff; box-shadow:0 4px 24px rgba(0,0,0,0.5);}
   .poster-btns { display:flex; gap:10px; }
   .poster-btns button {
     padding: 10px 20px; border:none; border-radius:8px; cursor:pointer; font-weight:bold;
@@ -143,15 +148,13 @@
   <!-- LEFT: Manual + Palette -->
   <div class="panel left-panel">
     <div class="manual">
-      <h2>📖 使い方</h2>
-      <ol>
-        <li>まずは、下のパレットから<strong>2色以上</strong>を選んでください。</li>
-        <li>選んだ色の「糸の本数」を右側で微調整できます。</li>
-        <li>「🎨 タータン生成」を押すと、選んだ色でデザインが表示されます。</li>
-        <li>色の順番を並び替えたり、糸の本数を変えたりして、再度「タータン生成」を押しながら、お気に入りの一枚に仕上げてください。</li>
-        <li>それぞれの色を選んだ「理由」もぜひ入力してください（20文字まで）。</li>
-        <li>完成したら、提出用の<strong>画像データ</strong>と<strong>テキストデータ</strong>を出力してご用意ください。</li>
-      </ol>
+      <h2>📖 使い方ガイド</h2>
+      <div class="step"><div class="num">1</div><p>まずは、下のパレットから<strong>2色以上</strong>を選んでください。</p></div>
+      <div class="step"><div class="num">2</div><p>選んだ色の「糸の本数」を右側で微調整してください。</p></div>
+      <div class="step"><div class="num">3</div><p>「🎨 タータン生成」を押すと、デザインが表示されます。</p></div>
+      <div class="step"><div class="num">4</div><p>色の順番を並び替えたり、糸の本数を変えたりしながら、再度「タータン生成」を押して、お気に入りの一枚に仕上げてください。</p></div>
+      <div class="step"><div class="num">5</div><p>それぞれの色を選んだ「選定理由」もぜひご記入ください（20文字まで）。</p></div>
+      <div class="step"><div class="num">6</div><p>完成したら、提出用の<strong>画像データ（ポスター／JPEG）</strong>と<strong>テキストデータ</strong>を出力してご用意ください。</p></div>
     </div>
 
     <h3>🎨 色を選ぶ（137色）</h3>
@@ -473,7 +476,7 @@ function copySubmission(){
   });
 }
 
-/* ===================== ポスター作成 ===================== */
+/* ===================== ポスター作成（動的レイアウト） ===================== */
 function openPoster(){
   if(selected.length === 0){ showToast("色を選択してください"); return; }
   const overlay = document.getElementById("posterOverlay");
@@ -487,8 +490,14 @@ function closePoster(){
 
 function drawPoster(canvas){
   const W = 900;
-  const colorRows = Math.min(selected.length, 6);
-  const H = 1300 + colorRows * 36;
+  const colorCount = Math.min(selected.length, 8);
+  // 色数に応じて行の高さを調整(4色→広め/6色→標準/8色→コンパクト)
+  let rowH = 36;
+  if(colorCount > 6) rowH = 28;
+  else if(colorCount <= 4) rowH = 42;
+
+  const listColors = selected.slice(0,6); // 表示は最大6色
+  const H = 1300 + listColors.length * rowH + 40;
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext("2d");
@@ -496,6 +505,7 @@ function drawPoster(canvas){
   ctx.fillStyle = "#fdfcf7";
   ctx.fillRect(0,0,W,H);
 
+  // 装飾枠
   ctx.strokeStyle = "#8B2131";
   ctx.lineWidth = 6;
   ctx.strokeRect(20,20,W-40,H-40);
@@ -503,11 +513,13 @@ function drawPoster(canvas){
   ctx.lineWidth = 2;
   ctx.strokeRect(32,32,W-64,H-64);
 
+  // 上部：協議会名
   ctx.fillStyle = "#14283C";
   ctx.font = "bold 20px serif";
   ctx.textAlign = "center";
   ctx.fillText("藤井寺まちリンク協議会", W/2, 70);
 
+  // 右上：団体名（30px）
   const name = document.getElementById("nameInput").value || "";
   ctx.fillStyle = "#333";
   ctx.font = "bold 30px serif";
@@ -518,11 +530,13 @@ function drawPoster(canvas){
   ctx.fillStyle = "#999";
   ctx.fillText("応募者名／団体名", W - 70, 150);
 
+  // タイトル
   ctx.textAlign = "center";
   ctx.fillStyle = "#8B2131";
   ctx.font = "bold 26px serif";
   ctx.fillText("オリジナルタータンデザイン", W/2, 200);
 
+  // タータン画像（固定760px）
   const unit = buildThreadUnit();
   const repeatCount = parseInt(document.getElementById("repeatCount").value) || 6;
   const tmp = document.createElement("canvas");
@@ -537,15 +551,24 @@ function drawPoster(canvas){
   ctx.lineWidth = 2;
   ctx.strokeRect(px, 240, 760, 760);
 
-  let listY = 240 + 760 + 50;
+  // カラーリボン装飾（タータン下に選択色の帯）
+  let ribbonY = 240 + 760 + 16;
+  const ribbonW = 760 / listColors.length;
+  listColors.forEach((c,i)=>{
+    ctx.fillStyle = c.hex;
+    ctx.fillRect(px + i*ribbonW, ribbonY, ribbonW, 10);
+  });
+
+  // 選んだ色と理由
+  let listY = ribbonY + 46;
   ctx.textAlign = "left";
   ctx.font = "bold 18px sans-serif";
   ctx.fillStyle = "#14283C";
   ctx.fillText("■ 選んだ色とその理由", 70, listY);
-  listY += 20;
+  listY += 14;
 
-  selected.slice(0,6).forEach(c=>{
-    listY += 36;
+  listColors.forEach(c=>{
+    listY += rowH;
     ctx.fillStyle = c.hex;
     ctx.fillRect(70, listY-20, 30, 24);
     ctx.strokeStyle = "#999";
@@ -553,13 +576,14 @@ function drawPoster(canvas){
 
     ctx.fillStyle = "#333";
     ctx.font = "bold 15px sans-serif";
-    ctx.fillText(`${c.name}（${c.hex}）`, 112, listY-2);
+    ctx.fillText(`${c.code}　${c.name}（${c.hex}）`, 112, listY-2);
 
     ctx.font = "13px sans-serif";
     ctx.fillStyle = "#666";
     ctx.fillText(c.reason ? `理由：${c.reason}` : "", 112, listY+16);
   });
 
+  // 下部：協議会名（小さく）
   ctx.textAlign = "center";
   ctx.font = "14px serif";
   ctx.fillStyle = "#14283C";
