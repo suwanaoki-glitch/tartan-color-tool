@@ -15,7 +15,6 @@
   }
   .container { max-width: 1400px; margin: 0 auto; }
 
-  /* ===== ヘッダー（タイトル左／団体名右） ===== */
   .header-row {
     display:flex; justify-content:space-between; align-items:center;
     flex-wrap:wrap; gap:16px; margin-bottom:20px;
@@ -32,7 +31,6 @@
     width:260px; max-width:60vw; text-align:right;
   }
 
-  /* ===== カテゴリフィルター（2段整理） ===== */
   .category-filters {
     display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
     max-width:820px; margin:0 auto 20px auto;
@@ -45,7 +43,6 @@
     background:#333; color:#fff; border-color:#333;
   }
 
-  /* ===== メインレイアウト（3:2） ===== */
   .main-layout {
     display:flex; gap:20px; align-items:flex-start;
   }
@@ -142,6 +139,21 @@
   #posterBtn { background:#a85c32; }
   #posterBtn:hover { background:#8a4a28; }
 
+  .submission-box textarea {
+    width:100%; font-family: "Courier New", monospace; font-size:12px;
+    padding:10px; border-radius:6px; border:1px solid #ccc; resize:vertical;
+    background:#fafafa;
+  }
+  #genDataBtn { background:#555; }
+  #genDataBtn:hover { background:#333; }
+  #copyDataBtn { background:#2c5f8a; }
+  #copyDataBtn:hover { background:#1f466a; }
+  .submission-box button {
+    width:100%; padding:10px; margin-top:8px; font-size:13px; font-weight:bold;
+    border:none; border-radius:6px; cursor:pointer; color:#fff;
+  }
+  .copy-note { font-size:11px; color:#2d8a3e; margin-top:4px; display:none; }
+
   .empty-msg { color:#999; font-size:13px; text-align:center; padding:20px 0; }
 
   @media (max-width: 900px) {
@@ -169,13 +181,11 @@
   <div class="category-filters" id="categoryFilters"></div>
 
   <div class="main-layout">
-    <!-- 左: カラーパレット -->
     <div class="palette-panel">
       <h2>🎨 カラーパレット（クリックで選択）</h2>
       <div class="color-grid" id="colorGrid"></div>
     </div>
 
-    <!-- 右: 選択リスト → 設定 → 生成結果 -->
     <div class="right-column">
       <div class="panel-box">
         <h2>✅ 選択した色（<span id="selectedCount">0</span>色）</h2>
@@ -202,6 +212,17 @@
           <button id="downloadImgBtn">⬇ 高画質で保存</button>
           <button id="posterBtn">🖼 投票用ポスターを作成</button>
         </div>
+      </div>
+
+      <div class="panel-box submission-box">
+        <h2>📋 提出用データ</h2>
+        <p style="font-size:12px;color:#666;margin-top:-6px;">
+          色定義とスレッドカウントをテキスト形式で出力します（画像とあわせて提出してください）
+        </p>
+        <button id="genDataBtn">📝 提出用テキストを生成</button>
+        <textarea id="submissionText" rows="4" readonly placeholder="「提出用テキストを生成」を押すとここに表示されます"></textarea>
+        <button id="copyDataBtn">📋 コピーする</button>
+        <div class="copy-note" id="copyNote">✅ コピーしました！</div>
       </div>
     </div>
   </div>
@@ -379,11 +400,6 @@ const CATEGORIES = [
   {key:"gold",label:"ゴールド/クリーム系"}
 ];
 
-const CAT_ABBR = {
-  red:"R", blue:"B", green:"Gn", yellow:"Y", orange:"O", purple:"P",
-  black:"Bk", white:"W", grey:"Gr", brown:"Br", pink:"Pk", gold:"Gd"
-};
-
 let currentFilter = "all";
 let selectedColors = []; // {name, hex, cat, count, reason}
 
@@ -395,6 +411,8 @@ function init(){
   document.getElementById("generateBtn").onclick = generateTartan;
   document.getElementById("downloadImgBtn").onclick = downloadImage;
   document.getElementById("posterBtn").onclick = createPoster;
+  document.getElementById("genDataBtn").onclick = generateSubmissionText;
+  document.getElementById("copyDataBtn").onclick = copySubmissionText;
 }
 
 function renderCategoryFilters(){
@@ -416,8 +434,34 @@ function isLight(hex){
   return (r*299+g*587+b*114)/1000 > 150;
 }
 
-function getCode(cat, idx){
-  return (CAT_ABBR[cat] || "C") + (idx+1);
+/* ===================== コード自動生成（提出用） =====================
+   例: Dark Blue -> DB / Light Brown -> LB / Yellow -> Y / Green -> G
+   重複した場合は自動的に桁を増やして回避します
+*/
+function generateCodes(colors){
+  const used = new Set();
+  return colors.map(c=>{
+    const words = c.name.trim().split(/\s+/);
+    let code;
+    if(words.length > 1){
+      code = words.map(w=>w[0].toUpperCase()).join('');
+    } else {
+      code = words[0].slice(0,1).toUpperCase();
+    }
+    let n = 2;
+    while(used.has(code)){
+      if(words.length > 1){
+        code = words.map(w=>w[0].toUpperCase()).join('') + n;
+      } else if(n <= words[0].length){
+        code = words[0].slice(0,n).toUpperCase();
+      } else {
+        code = words[0].slice(0,1).toUpperCase() + n;
+      }
+      n++;
+    }
+    used.add(code);
+    return code;
+  });
 }
 
 function renderPalette(){
@@ -454,9 +498,10 @@ function renderSelected(){
     list.innerHTML = `<div class="empty-msg">左から色を選んでください</div>`;
     return;
   }
+  const codes = generateCodes(selectedColors);
   list.innerHTML = "";
   selectedColors.forEach((c,i)=>{
-    const code = getCode(c.cat, i);
+    const code = codes[i];
     const div = document.createElement("div");
     div.className = "selected-item";
     div.innerHTML = `
@@ -521,6 +566,41 @@ function renderSelected(){
       renderSelected();
       renderPalette();
     };
+  });
+}
+
+/* ===================== 提出用テキスト生成 ===================== */
+function generateSubmissionText(){
+  if(selectedColors.length === 0){
+    alert("色を選択してください");
+    return;
+  }
+  const codes = generateCodes(selectedColors);
+
+  const defLine = selectedColors.map((c,i)=>{
+    const nameNoSpace = c.name.replace(/\s+/g,'').toUpperCase();
+    return `${codes[i]}=${c.hex}#${nameNoSpace}`;
+  }).join(';');
+
+  const countLine = selectedColors.map((c,i)=> `${codes[i]}${c.count}`).join(' ');
+
+  document.getElementById("submissionText").value = defLine + "\n" + countLine;
+  document.getElementById("copyNote").style.display = "none";
+}
+
+function copySubmissionText(){
+  const ta = document.getElementById("submissionText");
+  if(!ta.value){
+    alert("先に「提出用テキストを生成」を押してください");
+    return;
+  }
+  ta.select();
+  navigator.clipboard.writeText(ta.value).then(()=>{
+    const note = document.getElementById("copyNote");
+    note.style.display = "block";
+    setTimeout(()=>{ note.style.display = "none"; }, 2000);
+  }).catch(()=>{
+    document.execCommand("copy");
   });
 }
 
@@ -594,7 +674,6 @@ function roundRect(ctx,x,y,w,h,r){
   ctx.closePath();
 }
 
-/* 文字間を少し空けて描画（手動レタースペーシング） */
 function fillTextSpaced(ctx, text, x, y, spacing){
   const widths = [...text].map(ch=>ctx.measureText(ch).width);
   const totalWidth = widths.reduce((a,b)=>a+b,0) + spacing*(text.length-1);
@@ -608,7 +687,6 @@ function fillTextSpaced(ctx, text, x, y, spacing){
   ctx.textAlign = prevAlign;
 }
 
-/* 証書風コーナー装飾 */
 function drawCorner(ctx, x, y, flipX, flipY, color){
   ctx.save();
   ctx.translate(x,y);
@@ -628,7 +706,6 @@ function drawCorner(ctx, x, y, flipX, flipY, color){
   ctx.restore();
 }
 
-/* テキスト折り返し描画 */
 function wrapText(ctx, text, x, y, maxWidth, lineHeight){
   let line = "";
   let curY = y;
@@ -645,7 +722,19 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight){
   ctx.fillText(line, x, curY);
 }
 
-/* ===================== 投票用ポスター作成（エレガント版） ===================== */
+/* ===================== 色数に応じたレイアウト計算 ===================== */
+function getLayoutParams(count){
+  let patternSize;
+  if(count <= 4) patternSize = 650;
+  else if(count <= 6) patternSize = 560;
+  else if(count <= 8) patternSize = 480;
+  else patternSize = 400;
+
+  const cols = count <= 4 ? 2 : 3;
+  return { patternSize, cols };
+}
+
+/* ===================== 投票用ポスター作成（エレガント版・自動レイアウト） ===================== */
 function createPoster(){
   if(selectedColors.length === 0){
     alert("先に色を選択してタータンを生成してください");
@@ -653,12 +742,15 @@ function createPoster(){
   }
   const patternCanvas = document.getElementById("tartanCanvas");
   const orgName = document.getElementById("orgName").value || "（応募者名未入力）";
+  const codes = generateCodes(selectedColors);
 
   const pW = 1240;
   const pH = 1754;
   const outerMargin = 50;
   const innerMargin = 90;
-  const patternSize = pW - innerMargin*2;
+
+  const count = selectedColors.length;
+  const { patternSize, cols } = getLayoutParams(count);
 
   const posterCanvas = document.getElementById("posterCanvas");
   posterCanvas.width = pW;
@@ -670,18 +762,15 @@ function createPoster(){
   const INK = "#2b2b2b";
   const SUBTEXT = "#8a8a8a";
 
-  // --- 背景（クリーム系） ---
   ctx.fillStyle = "#faf7f0";
   ctx.fillRect(0,0,pW,pH);
 
-  // --- ヴィネット（うっすら陰影で高級感） ---
   const vignette = ctx.createRadialGradient(pW/2,pH/2,pH*0.2, pW/2,pH/2,pH*0.78);
   vignette.addColorStop(0, "rgba(0,0,0,0)");
   vignette.addColorStop(1, "rgba(0,0,0,0.05)");
   ctx.fillStyle = vignette;
   ctx.fillRect(0,0,pW,pH);
 
-  // --- 二重フレーム ---
   ctx.strokeStyle = GOLD;
   ctx.lineWidth = 2;
   ctx.strokeRect(outerMargin, outerMargin, pW-outerMargin*2, pH-outerMargin*2);
@@ -689,7 +778,6 @@ function createPoster(){
   ctx.lineWidth = 1;
   ctx.strokeRect(outerMargin+10, outerMargin+10, pW-(outerMargin+10)*2, pH-(outerMargin+10)*2);
 
-  // --- 証書風コーナー装飾 ---
   drawCorner(ctx, outerMargin+22, outerMargin+22, false, false, GOLD);
   drawCorner(ctx, pW-outerMargin-22, outerMargin+22, true, false, GOLD);
   drawCorner(ctx, outerMargin+22, pH-outerMargin-22, false, true, GOLD);
@@ -697,32 +785,28 @@ function createPoster(){
 
   let y = innerMargin + 16;
 
-  // --- 小さなラベル（上部） ---
   ctx.textAlign = "center";
   ctx.fillStyle = GOLD;
   ctx.font = "14px 'Hiragino Mincho ProN', serif";
   fillTextSpaced(ctx, "FUJIIDERA TARTAN DESIGN", pW/2, y, 6);
   y += 46;
 
-  // --- 応募者名／団体名 ---
   ctx.fillStyle = INK;
-  ctx.font = "bold 54px 'Hiragino Mincho ProN', 'Yu Mincho', serif";
-  ctx.fillText(orgName, pW/2, y + 50);
-  y += 94;
+  ctx.font = "bold 50px 'Hiragino Mincho ProN', 'Yu Mincho', serif";
+  ctx.fillText(orgName, pW/2, y + 46);
+  y += 90;
 
-  // --- 色のリボン帯（選んだ色のプレビュー） ---
   const ribbonHeight = 12;
-  const segW = patternSize / selectedColors.length;
+  const segW = patternSize / count;
   selectedColors.forEach((c,i)=>{
     ctx.fillStyle = c.hex;
-    ctx.fillRect(innerMargin + i*segW, y, Math.ceil(segW)+1, ribbonHeight);
+    ctx.fillRect(pW/2 - patternSize/2 + i*segW, y, Math.ceil(segW)+1, ribbonHeight);
   });
   ctx.strokeStyle = GOLD_SOFT;
   ctx.lineWidth = 1;
-  ctx.strokeRect(innerMargin, y, patternSize, ribbonHeight);
-  y += ribbonHeight + 30;
+  ctx.strokeRect(pW/2 - patternSize/2, y, patternSize, ribbonHeight);
+  y += ribbonHeight + 26;
 
-  // --- 装飾ライン＋ダイヤモンド ---
   ctx.strokeStyle = GOLD;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
@@ -739,42 +823,47 @@ function createPoster(){
   ctx.fillStyle = GOLD;
   ctx.fillRect(-5,-5,10,10);
   ctx.restore();
-  y += 40;
+  y += 34;
 
-  // --- タータン画像 ---
+  // --- タータン画像（中央配置・サイズ可変） ---
+  const patX = pW/2 - patternSize/2;
   ctx.save();
   ctx.shadowColor = "rgba(0,0,0,0.22)";
   ctx.shadowBlur = 24;
   ctx.shadowOffsetY = 8;
-  ctx.drawImage(patternCanvas, innerMargin, y, patternSize, patternSize);
+  ctx.drawImage(patternCanvas, patX, y, patternSize, patternSize);
   ctx.restore();
   ctx.strokeStyle = GOLD_SOFT;
   ctx.lineWidth = 2;
-  ctx.strokeRect(innerMargin, y, patternSize, patternSize);
-  y += patternSize + 48;
+  ctx.strokeRect(patX, y, patternSize, patternSize);
+  y += patternSize + 36;
 
-  // --- セクション見出し ---
   ctx.textAlign = "left";
   ctx.fillStyle = GOLD;
-  ctx.fillRect(innerMargin, y-4, 5, 26);
+  ctx.fillRect(innerMargin, y-4, 5, 24);
   ctx.fillStyle = INK;
-  ctx.font = "bold 24px 'Hiragino Mincho ProN', serif";
-  ctx.fillText("使 用 カ ラ ー", innerMargin + 18, y + 18);
-  y += 20;
+  ctx.font = "bold 22px 'Hiragino Mincho ProN', serif";
+  ctx.fillText("使 用 カ ラ ー", innerMargin + 18, y + 16);
+  y += 36;
 
-  // --- カラーカード（左に金のアクセントライン） ---
-  const count = selectedColors.length;
-  const cols = count <= 3 ? count : 3;
-  const gap = 18;
-  const cardW = (patternSize - gap*(cols-1)) / cols;
-  const cardH = 150;
+  // --- カードエリア：残りスペースから動的に高さを計算 ---
+  const gap = 16;
+  const patternAreaWidth = pW - innerMargin*2;
+  const cardW = (patternAreaWidth - gap*(cols-1)) / cols;
+  const rows = Math.ceil(count / cols);
+
+  const footerReserve = 130; // フッター分の余白
+  const bottomLimit = pH - outerMargin - footerReserve;
+  const availableHeight = bottomLimit - y;
+  let cardH = Math.floor((availableHeight - gap*(rows-1)) / rows);
+  cardH = Math.max(90, Math.min(150, cardH));
 
   selectedColors.forEach((c,i)=>{
-    const code = getCode(c.cat, i);
+    const code = codes[i];
     const col = i % cols;
     const row = Math.floor(i / cols);
     const cx = innerMargin + col*(cardW+gap);
-    const cy = y + 26 + row*(cardH+gap);
+    const cy = y + row*(cardH+gap);
 
     ctx.save();
     ctx.shadowColor = "rgba(0,0,0,0.06)";
@@ -788,69 +877,63 @@ function createPoster(){
     roundRect(ctx, cx, cy, cardW, cardH, 4);
     ctx.stroke();
 
-    // 左の金アクセントライン
     ctx.fillStyle = GOLD;
     ctx.fillRect(cx, cy, 4, cardH);
 
-    // 色スウォッチ
+    const swSize = Math.min(38, cardH*0.3);
     ctx.fillStyle = c.hex;
-    ctx.fillRect(cx+20, cy+16, 42, 42);
+    ctx.fillRect(cx+16, cy+14, swSize, swSize);
     ctx.strokeStyle = "#ccc";
     ctx.lineWidth = 1;
-    ctx.strokeRect(cx+20, cy+16, 42, 42);
+    ctx.strokeRect(cx+16, cy+14, swSize, swSize);
 
-    // コードバッジ
+    const badgeX = cx+16+swSize+30;
+    const badgeY = cy+14+swSize/2;
     ctx.beginPath();
-    ctx.arc(cx+94, cy+28, 16, 0, Math.PI*2);
+    ctx.arc(badgeX, badgeY, 15, 0, Math.PI*2);
     ctx.fillStyle = GOLD;
     ctx.fill();
     ctx.fillStyle = "#fff";
-    ctx.font = "bold 13px sans-serif";
+    ctx.font = "bold 12px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(code, cx+94, cy+32);
+    ctx.fillText(code, badgeX, badgeY+4);
 
-    // 名前
     ctx.textAlign = "left";
     ctx.fillStyle = INK;
-    ctx.font = "bold 18px 'Hiragino Mincho ProN', serif";
-    ctx.fillText(c.name, cx+120, cy+33);
+    ctx.font = `bold ${cardH < 110 ? 15 : 17}px 'Hiragino Mincho ProN', serif`;
+    ctx.fillText(c.name, badgeX+22, badgeY+5);
 
-    // HEX・本数
-    ctx.font = "12px sans-serif";
+    ctx.font = "11px sans-serif";
     ctx.fillStyle = SUBTEXT;
-    ctx.fillText(`${c.hex} ／ ${c.count}本`, cx+20, cy+82);
+    ctx.fillText(`${c.hex} ／ ${c.count}本`, cx+16, cy+14+swSize+16);
 
-    // 区切り線
     ctx.strokeStyle = "#eee";
     ctx.beginPath();
-    ctx.moveTo(cx+20, cy+92);
-    ctx.lineTo(cx+cardW-16, cy+92);
+    ctx.moveTo(cx+16, cy+14+swSize+26);
+    ctx.lineTo(cx+cardW-14, cy+14+swSize+26);
     ctx.stroke();
 
-    // 理由
     ctx.fillStyle = "#555";
-    ctx.font = "italic 13px 'Hiragino Mincho ProN', serif";
+    ctx.font = `italic ${cardH < 110 ? 11 : 12}px 'Hiragino Mincho ProN', serif`;
     const reasonText = c.reason ? c.reason : "（理由未記入）";
-    wrapText(ctx, reasonText, cx+20, cy+112, cardW-36, 19);
+    wrapText(ctx, reasonText, cx+16, cy+14+swSize+44, cardW-30, cardH<110?15:17);
   });
 
   // --- フッター ---
   ctx.strokeStyle = GOLD_SOFT;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(pW/2 - 100, pH - 96);
-  ctx.lineTo(pW/2 + 100, pH - 96);
+  ctx.moveTo(pW/2 - 100, pH - 90);
+  ctx.lineTo(pW/2 + 100, pH - 90);
   ctx.stroke();
 
   ctx.textAlign = "center";
   ctx.fillStyle = "#a89a7a";
   ctx.font = "15px 'Hiragino Mincho ProN', serif";
-  fillTextSpaced(ctx, "藤井寺まちリンク協議会", pW/2, pH - 56, 4);
+  fillTextSpaced(ctx, "藤井寺まちリンク協議会", pW/2, pH - 52, 4);
 
-  // ダウンロード
   const link = document.createElement("a");
-  const fileName = `${orgName}_poster.jpg`;
-  link.download = fileName;
+  link.download = `${orgName}_poster.jpg`;
   link.href = posterCanvas.toDataURL("image/jpeg", 0.95);
   link.click();
 }
