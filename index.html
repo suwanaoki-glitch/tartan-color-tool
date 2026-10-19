@@ -83,14 +83,6 @@
     box-shadow: 0 0 0 2px gold inset;
   }
   .swatch:hover { transform: scale(1.08); transition: 0.1s; }
-  .swatch-label {
-    position: absolute;
-    bottom: -16px;
-    left: 0; right: 0;
-    text-align: center;
-    font-size: 8px;
-    color: #666;
-  }
   .selected-list {
     display: flex;
     flex-direction: column;
@@ -187,22 +179,13 @@
   }
   #submissionText {
     width: 100%;
-    height: 220px;
+    height: 200px;
     font-family: 'Courier New', monospace;
     font-size: 11.5px;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 6px;
     white-space: pre;
-  }
-  #codeOutput {
-    font-family: monospace;
-    background: #eef;
-    padding: 8px 12px;
-    border-radius: 6px;
-    display: inline-block;
-    margin-top: 6px;
-    font-size: 13px;
   }
   .toast {
     position: fixed;
@@ -219,7 +202,15 @@
     z-index: 999;
   }
   .toast.show { opacity: 1; }
-  #posterCanvas { display: none; }
+  #posterCanvas {
+    display: none;
+    margin: 16px auto;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    max-width: 100%;
+    width: 340px;
+    height: auto;
+  }
   .section-title {
     font-size: 15px;
     font-weight: bold;
@@ -243,7 +234,7 @@
 2. 糸の本数を微調整して「タータン生成」を押します。
 3. デザインが表示されたら、色の並び替えや糸の数変更を行い、再度「タータン生成」を押してください。
 4. 選定理由と「このタータンのコンセプトや想い」もご記入ください。
-5. 完成したら、提出用のポスター画像とテキストデータを出力してください。
+5. 完成したら、提出用のデータをダウンロードしてください。
     </div>
 
     <div class="section-title">🎨 カラーパレット（137色）</div>
@@ -266,8 +257,6 @@
 
     <div style="text-align:center;">
       <button class="btn" onclick="downloadImage()">⬇ 高画質で保存</button>
-      <button class="btn secondary" onclick="generatePoster()">🖼 ポスター作成</button>
-      <button class="btn secondary" onclick="downloadPoster()">⬇ ポスターダウンロード</button>
     </div>
 
     <div class="name-input-area">
@@ -279,25 +268,23 @@
         placeholder="例：藤井寺の伝統と未来への願いを込めて、歴史ある街の想いをイメージしました。"></textarea>
     </div>
 
-    <div class="section-title">📋 提出用データ</div>
+    <div style="text-align:center;">
+      <button class="btn secondary" onclick="generateAndDownloadPoster()">📄 提出用データを作成してダウンロード</button>
+    </div>
+    <canvas id="posterCanvas"></canvas>
+
+    <div class="section-title">📋 提出用テキストデータ</div>
     <button class="btn" onclick="updateSubmissionText()">🔄 データ更新</button>
     <button class="btn" onclick="copySubmission()">📋 テキストをコピー</button>
     <textarea id="submissionText" readonly></textarea>
-
-    <div style="margin-top:10px;">
-      <span id="codeOutput">提出用コード：未生成</span>
-      <button class="btn" style="padding:6px 12px;font-size:12px;" onclick="copyCode()">コピー</button>
-    </div>
   </div>
 </div>
 
-<canvas id="posterCanvas" width="900" height="1400"></canvas>
 <div class="toast" id="toast"></div>
 
 <script>
 /* ===================== 137色データ ===================== */
 const COLORS = [
-  // RED
   {code:"R1",name:"Red",hex:"#C8102E",cat:"red"},
   {code:"R2",name:"Dark Red",hex:"#8B0000",cat:"red"},
   {code:"R3",name:"Light Red",hex:"#E2525B",cat:"red"},
@@ -313,7 +300,6 @@ const COLORS = [
   {code:"R13",name:"Coral Red",hex:"#FF4040",cat:"red"},
   {code:"R14",name:"Terracotta",hex:"#E2725B",cat:"red"},
   {code:"R15",name:"Burgundy",hex:"#800020",cat:"red"},
-  // BLUE
   {code:"B1",name:"Blue",hex:"#0057B8",cat:"blue"},
   {code:"B2",name:"Dark Blue",hex:"#00205B",cat:"blue"},
   {code:"B3",name:"Light Blue",hex:"#6CACE4",cat:"blue"},
@@ -334,7 +320,6 @@ const COLORS = [
   {code:"B18",name:"Baby Blue",hex:"#89CFF0",cat:"blue"},
   {code:"B19",name:"Indigo Blue",hex:"#3F00FF",cat:"blue"},
   {code:"B20",name:"Prussian Blue",hex:"#003153",cat:"blue"},
-  // GREEN
   {code:"G1",name:"Green",hex:"#007A3D",cat:"green"},
   {code:"G2",name:"Dark Green",hex:"#013220",cat:"green"},
   {code:"G3",name:"Light Green",hex:"#90EE90",cat:"green"},
@@ -355,7 +340,6 @@ const COLORS = [
   {code:"G18",name:"Sea Green",hex:"#2E8B57",cat:"green"},
   {code:"G19",name:"Army Green",hex:"#4B5320",cat:"green"},
   {code:"G20",name:"Lincoln Green",hex:"#195905",cat:"green"},
-  // YELLOW
   {code:"Y1",name:"Yellow",hex:"#FFD700",cat:"yellow"},
   {code:"Y2",name:"Gold",hex:"#D4AF37",cat:"yellow"},
   {code:"Y3",name:"Light Yellow",hex:"#FFFFE0",cat:"yellow"},
@@ -366,7 +350,6 @@ const COLORS = [
   {code:"Y8",name:"Lemon Yellow",hex:"#FFF44F",cat:"yellow"},
   {code:"Y9",name:"Saffron",hex:"#F4C430",cat:"yellow"},
   {code:"Y10",name:"Buttercup Yellow",hex:"#F3E05E",cat:"yellow"},
-  // NEUTRAL (黒・灰・白)
   {code:"N1",name:"Black",hex:"#000000",cat:"neutral"},
   {code:"N2",name:"Dark Grey",hex:"#14283C",cat:"neutral"},
   {code:"N3",name:"Grey",hex:"#808080",cat:"neutral"},
@@ -382,7 +365,6 @@ const COLORS = [
   {code:"N13",name:"Pewter Grey",hex:"#899499",cat:"neutral"},
   {code:"N14",name:"Stone Grey",hex:"#928E85",cat:"neutral"},
   {code:"N15",name:"Graphite",hex:"#383838",cat:"neutral"},
-  // BROWN
   {code:"BR1",name:"Brown",hex:"#964B00",cat:"brown"},
   {code:"BR2",name:"Dark Brown",hex:"#5C4033",cat:"brown"},
   {code:"BR3",name:"Light Brown",hex:"#C4A484",cat:"brown"},
@@ -398,7 +380,6 @@ const COLORS = [
   {code:"BR13",name:"Umber",hex:"#635147",cat:"brown"},
   {code:"BR14",name:"Sienna",hex:"#A0522D",cat:"brown"},
   {code:"BR15",name:"Russet",hex:"#80461B",cat:"brown"},
-  // PURPLE
   {code:"P1",name:"Purple",hex:"#702963",cat:"purple"},
   {code:"P2",name:"Dark Purple",hex:"#301934",cat:"purple"},
   {code:"P3",name:"Light Purple",hex:"#C8A2C8",cat:"purple"},
@@ -411,7 +392,6 @@ const COLORS = [
   {code:"P10",name:"Amethyst",hex:"#9966CC",cat:"purple"},
   {code:"P11",name:"Orchid",hex:"#DA70D6",cat:"purple"},
   {code:"P12",name:"Royal Purple",hex:"#7851A9",cat:"purple"},
-  // ORANGE
   {code:"O1",name:"Orange",hex:"#FF8200",cat:"orange"},
   {code:"O2",name:"Dark Orange",hex:"#D2691E",cat:"orange"},
   {code:"O3",name:"Light Orange",hex:"#FFB347",cat:"orange"},
@@ -422,7 +402,6 @@ const COLORS = [
   {code:"O8",name:"Pumpkin Orange",hex:"#FF7518",cat:"orange"},
   {code:"O9",name:"Copper",hex:"#B87333",cat:"orange"},
   {code:"O10",name:"Amber Orange",hex:"#FF9F00",cat:"orange"},
-  // PINK
   {code:"PK1",name:"Pink",hex:"#FFC0CB",cat:"pink"},
   {code:"PK2",name:"Dark Pink",hex:"#E75480",cat:"pink"},
   {code:"PK3",name:"Light Pink",hex:"#FFD1DC",cat:"pink"},
@@ -433,7 +412,6 @@ const COLORS = [
   {code:"PK8",name:"Blush Pink",hex:"#FFB6C1",cat:"pink"},
   {code:"PK9",name:"Magenta Pink",hex:"#FF00FF",cat:"pink"},
   {code:"PK10",name:"Dusty Pink",hex:"#D8A7B1",cat:"pink"},
-  // MULTI
   {code:"M1",name:"Lovat",hex:"#4A5D53",cat:"multi"},
   {code:"M2",name:"Lovat Mixture",hex:"#6B705C",cat:"multi"},
   {code:"M3",name:"Heather Mixture",hex:"#8C7B8C",cat:"multi"},
@@ -452,9 +430,11 @@ const CAT_LABELS = {
   pink:"桃", multi:"ミックス"
 };
 
+const JP_FONT = "'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic','Meiryo',sans-serif";
+
 /* ===================== 状態管理 ===================== */
 let currentFilter = "all";
-let selectedColors = []; // {code,name,hex,threadCount,reason}
+let selectedColors = [];
 const MAX_COLORS = 8;
 let lastSequence = null;
 
@@ -567,21 +547,17 @@ function hexToRgb(hex){
   const v = parseInt(hex.replace("#",""),16);
   return [(v>>16)&255, (v>>8)&255, v&255];
 }
-
 function shade(rgb, factor){
   return rgb.map(v=>Math.min(255, Math.max(0, Math.round(v*factor))));
 }
-
 function buildSequence(){
   let half = [];
   selectedColors.forEach(c=>{
     for(let i=0;i<c.threadCount;i++) half.push(c.hex);
   });
-  // 左右対称（ミラー）にするため、半分を反転して結合（ピボット糸は重複させない）
   const mirrored = half.concat(half.slice(0,-1).reverse());
   return mirrored;
 }
-
 function drawTartan(canvas, sequence, size, repeatCount){
   const ctx = canvas.getContext("2d");
   canvas.width = size;
@@ -589,10 +565,8 @@ function drawTartan(canvas, sequence, size, repeatCount){
   const seqLen = sequence.length;
   const totalThreads = seqLen * repeatCount;
   const rgbSeq = sequence.map(hexToRgb);
-
   const imgData = ctx.createImageData(size, size);
   const data = imgData.data;
-
   for(let y=0; y<size; y++){
     const yPos = Math.floor(y/size*totalThreads);
     const weftIdx = yPos % seqLen;
@@ -602,9 +576,9 @@ function drawTartan(canvas, sequence, size, repeatCount){
       const diag = (xPos + yPos) % 4;
       let rgb;
       if(diag < 2){
-        rgb = shade(rgbSeq[warpIdx], 1.08); // 経糸：ハイライト
+        rgb = shade(rgbSeq[warpIdx], 1.08);
       } else {
-        rgb = shade(rgbSeq[weftIdx], 0.85); // 緯糸：シャドウ
+        rgb = shade(rgbSeq[weftIdx], 0.85);
       }
       const idx = (y*size+x)*4;
       data[idx]=rgb[0]; data[idx+1]=rgb[1]; data[idx+2]=rgb[2]; data[idx+3]=255;
@@ -612,7 +586,6 @@ function drawTartan(canvas, sequence, size, repeatCount){
   }
   ctx.putImageData(imgData, 0, 0);
 }
-
 function generatePattern(){
   if(selectedColors.length < 2){
     alert("2色以上選択してください");
@@ -625,8 +598,6 @@ function generatePattern(){
   updateSubmissionText();
   showToast("🧶 タータンを生成しました");
 }
-
-/* ===================== 高画質保存 ===================== */
 function downloadImage(){
   if(!lastSequence){ alert("先にタータンを生成してください"); return; }
   const repeatCount = parseInt(document.getElementById("repeatCount").value,10) || 6;
@@ -638,8 +609,23 @@ function downloadImage(){
   link.click();
 }
 
-/* ===================== ポスター生成 ===================== */
-function wrapText(ctx, text, x, y, maxWidth, lineHeight){
+/* ===================== 提出用データ（ポスター）====================== */
+function countWrapLines(ctx, text, maxWidth){
+  if(!text) return 0;
+  let line = "", lines = 0;
+  for(let i=0;i<text.length;i++){
+    const test = line + text[i];
+    if(ctx.measureText(test).width > maxWidth && line.length>0){
+      lines++;
+      line = text[i];
+    } else {
+      line = test;
+    }
+  }
+  if(line.length>0) lines++;
+  return lines;
+}
+function wrapTextDraw(ctx, text, x, y, maxWidth, lineHeight){
   let line = "";
   let currentY = y;
   for(let i=0;i<text.length;i++){
@@ -652,29 +638,52 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight){
       line = test;
     }
   }
-  ctx.fillText(line, x, currentY);
-  return currentY + lineHeight;
+  if(line.length>0){ ctx.fillText(line, x, currentY); currentY += lineHeight; }
+  return currentY;
 }
 
-function generatePoster(){
+function generateAndDownloadPoster(){
   if(!lastSequence){ alert("先にタータンを生成してください"); return; }
   const repeatCount = parseInt(document.getElementById("repeatCount").value,10) || 6;
   const name = document.getElementById("nameInput").value || "（未入力）";
   const concept = document.getElementById("conceptInput").value || "";
 
   const poster = document.getElementById("posterCanvas");
-  const W = 900, H = 1400;
-  poster.width = W; poster.height = H;
   const ctx = poster.getContext("2d");
+  const W = 900;
 
-  // 背景
+  // --- レイアウト計算 ---
+  ctx.font = `14px ${JP_FONT}`;
+  const conceptLines = concept.trim()!=="" ? countWrapLines(ctx, concept, W-140) : 0;
+
+  const topMargin = 50;
+  const nameAreaH = 70;
+  const patternMarginTop = 30;
+  const patternSize = 760;
+  const patternMarginBottom = 40;
+  const conceptHeaderH = concept.trim()!=="" ? 28 : 0;
+  const conceptBodyH = conceptLines * 22;
+  const conceptMarginBottom = concept.trim()!=="" ? 24 : 0;
+  const colorsHeaderH = 36;
+  const colorRowH = 76;
+  const colorsH = colorsHeaderH + selectedColors.slice(0,6).length * colorRowH;
+  const bottomMargin = 70;
+
+  const H = topMargin + nameAreaH + patternMarginTop + patternSize + patternMarginBottom
+          + conceptHeaderH + conceptBodyH + conceptMarginBottom
+          + colorsH + bottomMargin;
+
+  poster.width = W;
+  poster.height = H;
+  poster.style.display = "block";
+
+  // --- 背景 ---
   const grad = ctx.createLinearGradient(0,0,0,H);
   grad.addColorStop(0, "#fdfcf9");
   grad.addColorStop(1, "#f3f1ea");
   ctx.fillStyle = grad;
   ctx.fillRect(0,0,W,H);
 
-  // 外枠装飾
   ctx.strokeStyle = "#C9AE5D";
   ctx.lineWidth = 3;
   ctx.strokeRect(20,20,W-40,H-40);
@@ -682,118 +691,106 @@ function generatePoster(){
   ctx.lineWidth = 1;
   ctx.strokeRect(28,28,W-56,H-56);
 
-  // 上部：協議会名
-  ctx.textAlign = "center";
-  ctx.fillStyle = "#8a6d00";
-  ctx.font = "bold 16px sans-serif";
-  ctx.fillText("藤井寺まちリンク協議会", W/2, 65);
-  ctx.strokeStyle = "#C9AE5D";
-  ctx.beginPath();
-  ctx.moveTo(100,85); ctx.lineTo(W-100,85); ctx.stroke();
+  let curY = topMargin;
 
-  // 応募者名（右寄せ・30px）
+  // --- 応募者名（右寄せ・30px） ---
   ctx.textAlign = "right";
   ctx.fillStyle = "#666";
-  ctx.font = "14px sans-serif";
-  ctx.fillText("応募者名／団体名", W-70, 120);
+  ctx.font = `14px ${JP_FONT}`;
+  ctx.fillText("応募者名／団体名", W-70, curY + 18);
   ctx.fillStyle = "#14283C";
-  ctx.font = "bold 30px sans-serif";
-  ctx.fillText(name, W-70, 158);
+  ctx.font = `bold 30px ${JP_FONT}`;
+  ctx.fillText(name, W-70, curY + 56);
 
-  // タータンパターン（固定760px中央配置）
-  const patSize = 760;
-  const patX = (W - patSize)/2;
-  const patY = 185;
+  curY += nameAreaH + patternMarginTop;
+
+  // --- タータンパターン（固定760px中央） ---
+  const patX = (W - patternSize)/2;
   const tmp = document.createElement("canvas");
-  drawTartan(tmp, lastSequence, patSize, repeatCount);
+  drawTartan(tmp, lastSequence, patternSize, repeatCount);
   ctx.save();
   ctx.shadowColor = "rgba(0,0,0,0.25)";
   ctx.shadowBlur = 16;
-  ctx.drawImage(tmp, patX, patY, patSize, patSize);
+  ctx.drawImage(tmp, patX, curY, patternSize, patternSize);
   ctx.restore();
   ctx.strokeStyle = "#14283C";
   ctx.lineWidth = 2;
-  ctx.strokeRect(patX, patY, patSize, patSize);
+  ctx.strokeRect(patX, curY, patternSize, patternSize);
 
-  let curY = patY + patSize + 45;
+  curY += patternSize + patternMarginBottom;
 
-  // コンセプト・想い
+  // --- コンセプト・想い ---
   if(concept.trim() !== ""){
     ctx.textAlign = "left";
     ctx.fillStyle = "#14283C";
-    ctx.font = "bold 16px sans-serif";
+    ctx.font = `bold 16px ${JP_FONT}`;
     ctx.fillText("■ このタータンのコンセプト・想い", 70, curY);
-    curY += 24;
-    ctx.font = "14px sans-serif";
+    curY += conceptHeaderH;
+    ctx.font = `14px ${JP_FONT}`;
     ctx.fillStyle = "#333";
-    curY = wrapText(ctx, concept, 70, curY, W-140, 20);
-    curY += 10;
+    curY = wrapTextDraw(ctx, concept, 70, curY, W-140, 22);
+    curY += conceptMarginBottom - 0; // 既にbody分は加算済み
   }
 
-  // 使用色一覧（最大6色）
+  // --- 使用色一覧（1列・スウォッチ拡大） ---
+  ctx.textAlign = "left";
   ctx.fillStyle = "#14283C";
-  ctx.font = "bold 16px sans-serif";
+  ctx.font = `bold 16px ${JP_FONT}`;
   ctx.fillText("■ 使用色一覧", 70, curY);
-  curY += 10;
+  curY += colorsHeaderH;
 
   const showColors = selectedColors.slice(0,6);
-  const colW = (W-140)/2;
-  showColors.forEach((c, i)=>{
-    const col = i % 2;
-    const row = Math.floor(i/2);
-    const bx = 70 + col*colW;
-    const by = curY + 20 + row*54;
+  const swatchSize = 56;
+  showColors.forEach((c)=>{
+    const rowTop = curY;
+    const swX = 70;
+    const swY = rowTop;
 
     ctx.fillStyle = c.hex;
-    ctx.fillRect(bx, by-16, 26, 26);
+    ctx.fillRect(swX, swY, swatchSize, swatchSize);
     ctx.strokeStyle = "#999";
-    ctx.strokeRect(bx, by-16, 26, 26);
+    ctx.lineWidth = 1;
+    ctx.strokeRect(swX, swY, swatchSize, swatchSize);
 
+    const textX = swX + swatchSize + 18;
     ctx.fillStyle = "#222";
-    ctx.font = "bold 13px sans-serif";
-    ctx.textAlign = "left";
-    ctx.fillText(`${c.code} ${c.name} (${c.hex}) ${c.threadCount}本`, bx+34, by-2);
-    ctx.font = "12px sans-serif";
+    ctx.font = `bold 14px ${JP_FONT}`;
+    ctx.fillText(`${c.code}  ${c.name}`, textX, swY + 18);
+
+    ctx.font = `12px ${JP_FONT}`;
     ctx.fillStyle = "#666";
-    ctx.fillText(c.reason ? `理由: ${c.reason}` : "", bx+34, by+16);
+    ctx.fillText(`${c.hex} ／ ${c.threadCount}本`, textX, swY + 36);
+
+    ctx.fillStyle = "#555";
+    ctx.font = `12px ${JP_FONT}`;
+    const reasonText = c.reason ? `理由：${c.reason}` : "理由：（未記入）";
+    ctx.fillText(reasonText, textX, swY + 54);
+
+    curY += colorRowH;
   });
 
-  const rows = Math.ceil(showColors.length/2);
-  curY = curY + 20 + rows*54 + 20;
+  curY += bottomMargin - 40;
 
-  // 提出用コード
-  const code = buildSubmissionCode();
+  // --- 下部：協議会名のみ ---
   ctx.textAlign = "center";
-  ctx.font = "12px monospace";
-  ctx.fillStyle = "#999";
-  ctx.fillText(`提出用コード: ${code}`, W/2, H-70);
-
-  // 下部：協議会名
   ctx.strokeStyle = "#C9AE5D";
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(100, H-55); ctx.lineTo(W-100, H-55); ctx.stroke();
+  ctx.moveTo(100, curY); ctx.lineTo(W-100, curY); ctx.stroke();
   ctx.fillStyle = "#8a6d00";
-  ctx.font = "bold 16px sans-serif";
-  ctx.fillText("藤井寺まちリンク協議会", W/2, H-35);
+  ctx.font = `bold 16px ${JP_FONT}`;
+  ctx.fillText("藤井寺まちリンク協議会", W/2, curY + 26);
 
-  showToast("🖼 ポスターを生成しました");
-}
-
-function downloadPoster(){
-  const poster = document.getElementById("posterCanvas");
-  if(poster.width===0){ alert("先にポスターを作成してください"); return; }
+  // --- ダウンロード ---
   const link = document.createElement("a");
-  link.download = "tartan_poster_fujiidera.jpg";
+  link.download = "tartan_submission_fujiidera.jpg";
   link.href = poster.toDataURL("image/jpeg", 0.95);
   link.click();
+
+  showToast("📄 提出用データを作成しました");
 }
 
-/* ===================== 提出用データ ===================== */
-function buildSubmissionCode(){
-  if(selectedColors.length===0) return "未選択";
-  return "FJD-" + selectedColors.map(c=>c.code+c.threadCount).join("-");
-}
-
+/* ===================== 提出用テキストデータ ===================== */
 function updateSubmissionText(){
   const name = document.getElementById("nameInput").value || "（未入力）";
   const concept = document.getElementById("conceptInput").value || "（未入力）";
@@ -812,22 +809,15 @@ function updateSubmissionText(){
   });
   text += `\n【スレッド構成】\n`;
   text += `繰り返し回数: ${repeatCount}\n`;
-  text += `1セットあたり合計糸数（片側）: ${total}本\n\n`;
-  text += `【提出用コード】\n${buildSubmissionCode()}\n`;
+  text += `1セットあたり合計糸数（片側）: ${total}本\n`;
 
   document.getElementById("submissionText").value = text;
-  document.getElementById("codeOutput").textContent = "提出用コード：" + buildSubmissionCode();
 }
 
 function copySubmission(){
   const text = document.getElementById("submissionText").value;
   if(!text){ alert("先にデータを更新してください"); return; }
   navigator.clipboard.writeText(text).then(()=>showToast("📋 テキストをコピーしました"));
-}
-
-function copyCode(){
-  const code = buildSubmissionCode();
-  navigator.clipboard.writeText(code).then(()=>showToast("🔑 コードをコピーしました"));
 }
 
 /* ===================== トースト通知 ===================== */
