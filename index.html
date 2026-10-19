@@ -5,10 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>タータンレジスター カラーツール</title>
 <style>
+  :root{
+    --navy: #1f3b57;
+    --navy-deep: #16293d;
+    --gold: #b8933f;
+    --gold-soft: #cdb06a;
+    --bg1: #f7f8fa;
+    --bg2: #eef1f5;
+  }
   * { box-sizing: border-box; }
   body {
     font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
-    background: #f4f4f4;
+    background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
     margin: 0;
     padding: 16px;
     color: #222;
@@ -18,30 +26,46 @@
   .header-row {
     display:flex; justify-content:space-between; align-items:center;
     flex-wrap:wrap; gap:16px; margin-bottom:14px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--gold-soft);
   }
   .header-left { flex:1; min-width:280px; }
-  .header-left h1 { margin:0 0 4px 0; text-align:left; font-size:22px;}
-  .header-left .sub-note { text-align:left; margin:0; color:#666; font-size:12px;}
+  .header-left h1 {
+    margin:0 0 4px 0; text-align:left; font-size:23px;
+    color: var(--navy); letter-spacing: 1px; font-weight:800;
+  }
+  .header-left .sub-note { text-align:left; margin:0; color:#777; font-size:12px;}
   .header-right {
     display:flex; flex-direction:column; align-items:flex-end; gap:4px;
   }
-  .org-label { font-size:11px; color:#888; }
+  .org-label { font-size:11px; color:#999; }
   .header-right input {
-    padding:8px 12px; font-size:13px; border-radius:6px; border:1px solid #ccc;
+    padding:9px 12px; font-size:13px; border-radius:8px; border:1px solid #ccc;
     width:260px; max-width:60vw; text-align:right;
+    transition: box-shadow .2s, border-color .2s;
+  }
+  .header-right input:focus {
+    outline:none; border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(184,147,63,0.15);
   }
 
-  /* ▼ カテゴリボタンを左寄せに変更して行数を圧縮 */
   .category-filters {
     display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-start;
     max-width:100%; margin:0 0 14px 0;
   }
   .category-filters button {
-    padding:5px 12px; border-radius:20px; border:1px solid #999;
+    padding:6px 14px; border-radius:20px; border:1px solid #ccc;
     background:#fff; cursor:pointer; font-size:12px;
+    transition: all .15s;
+  }
+  .category-filters button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   }
   .category-filters button.active {
-    background:#333; color:#fff; border-color:#333;
+    background: linear-gradient(135deg, var(--navy), var(--navy-deep));
+    color:#fff; border-color: var(--navy-deep);
+    box-shadow: 0 2px 8px rgba(31,59,87,0.35);
   }
 
   .main-layout {
@@ -49,8 +73,8 @@
   }
   .palette-panel {
     flex: 3;
-    background:#fff; border-radius:10px; padding:12px;
-    box-shadow:0 1px 4px rgba(0,0,0,0.1);
+    background:#fff; border-radius:14px; padding:14px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.08);
   }
   .right-column {
     flex: 2;
@@ -59,10 +83,12 @@
     gap: 12px;
   }
   .panel-box {
-    background:#fff; border-radius:10px; padding:12px;
-    box-shadow:0 1px 4px rgba(0,0,0,0.1);
+    background:#fff; border-radius:14px; padding:14px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.08);
   }
-  .panel-box h2 { font-size:15px; margin-top:0; margin-bottom:8px;}
+  .panel-box h2 {
+    font-size:15px; margin-top:0; margin-bottom:8px; color: var(--navy);
+  }
 
   .color-grid {
     display:grid;
@@ -74,88 +100,100 @@
   }
   .color-swatch {
     cursor:pointer;
-    border-radius:6px;
+    border-radius:8px;
     padding:6px 4px;
     text-align:center;
     font-size:10px;
     border:2px solid transparent;
     line-height:1.3;
     word-break: break-word;
+    transition: transform .12s, box-shadow .12s;
+  }
+  .color-swatch:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
   }
   .color-swatch.selected {
-    border-color:#111;
-    box-shadow: 0 0 0 2px gold inset;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px var(--gold-soft) inset;
   }
   .color-swatch .cname { font-weight:bold; }
 
   .selected-list { max-height: 34vh; overflow-y:auto; margin-bottom:4px;}
   .selected-item {
-    background:#f7f7f7; border-radius:8px; padding:8px; margin-bottom:8px;
+    background:#faf9f6; border-radius:10px; padding:8px; margin-bottom:8px;
+    border: 1px solid #f0ebe0;
   }
   .selected-item .row { display:flex; gap:8px; align-items:flex-start; }
   .swatch-mini {
-    width:34px; height:34px; border-radius:6px; flex-shrink:0;
+    width:34px; height:34px; border-radius:8px; flex-shrink:0;
     border:1px solid #ccc;
   }
   .selected-item .info { flex:1; min-width:0; }
   .selected-item .info b { font-size:13px; }
   .code-badge {
-    display:inline-block; background:#333; color:#fff; font-size:10px;
-    padding:1px 6px; border-radius:10px; margin-right:6px;
+    display:inline-block;
+    background: linear-gradient(135deg, var(--navy), var(--navy-deep));
+    color:#fff; font-size:10px;
+    padding:1px 7px; border-radius:10px; margin-right:6px;
   }
-  .selected-item .info .hex { font-size:11px; color:#666; }
-  .count-input { width:55px; padding:3px; margin-top:4px; font-size:12px;}
-  .reason-input { width:100%; padding:4px; margin-top:4px; font-size:12px; border-radius:4px; border:1px solid #ccc;}
+  .selected-item .info .hex { font-size:11px; color:#888; }
+  .count-input { width:55px; padding:3px; margin-top:4px; font-size:12px; border-radius:4px; border:1px solid #ccc;}
+  .reason-input { width:100%; padding:5px; margin-top:4px; font-size:12px; border-radius:6px; border:1px solid #ccc;}
   .reorder-btns { display:flex; flex-direction:column; gap:2px; }
   .reorder-btns button {
     font-size:11px; padding:2px 6px; cursor:pointer; border-radius:4px; border:1px solid #ccc; background:#fff;
+    transition: background .15s;
   }
-  .reorder-btns .remove-btn { color:#c00; }
+  .reorder-btns button:hover { background:#f0ebe0; }
+  .reorder-btns .remove-btn { color:#c0392b; }
 
-  .pattern-controls label { display:block; font-size:12px; margin-bottom:6px; }
-  .pattern-controls input[type=number] { width:80px; padding:4px; margin-left:6px;}
+  .pattern-controls label { display:block; font-size:12px; margin-bottom:6px; color:#555;}
+  .pattern-controls input[type=number] { width:80px; padding:5px; margin-left:6px; border-radius:6px; border:1px solid #ccc;}
   #generateBtn {
-    width:100%; padding:10px; font-size:14px; font-weight:bold;
-    background:#2c5f8a; color:#fff; border:none; border-radius:8px; cursor:pointer;
-    margin-top:6px;
+    width:100%; padding:11px; font-size:14px; font-weight:bold;
+    background: linear-gradient(135deg, #2c5f8a, #1f466a); color:#fff; border:none; border-radius:9px; cursor:pointer;
+    margin-top:6px; transition: transform .15s, box-shadow .15s;
   }
-  #generateBtn:hover { background:#1f466a; }
+  #generateBtn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(44,95,138,0.4); }
 
   .pattern-result { text-align:center; }
   #tartanCanvas {
     max-width: 100%;
     height: auto;
-    border:1px solid #ddd;
-    border-radius:6px;
+    border:1px solid #e3ddd0;
+    border-radius:8px;
   }
   .export-buttons {
     margin-top:10px; display:flex; flex-direction:column; gap:8px;
   }
   .export-buttons button {
-    padding:11px; font-size:13px; font-weight:bold;
-    border:none; border-radius:8px; cursor:pointer; color:#fff; width:100%;
+    padding:12px; font-size:13px; font-weight:bold;
+    border:none; border-radius:9px; cursor:pointer; color:#fff; width:100%;
+    transition: transform .15s, box-shadow .15s;
   }
-  #downloadImgBtn { background:#3a7d44; }
-  #downloadImgBtn:hover { background:#2d5f34; }
-  #posterBtn { background:#a85c32; }
-  #posterBtn:hover { background:#8a4a28; }
+  #downloadImgBtn { background: linear-gradient(135deg, #3a7d44, #2d5f34); }
+  #downloadImgBtn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(58,125,68,0.4); }
+  #posterBtn { background: linear-gradient(135deg, var(--gold), #8a4a28); }
+  #posterBtn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(184,147,63,0.4); }
 
   .submission-box textarea {
     width:100%; font-family: "Courier New", monospace; font-size:12px;
-    padding:9px; border-radius:6px; border:1px solid #ccc; resize:vertical;
-    background:#fafafa;
+    padding:10px; border-radius:8px; border:1px solid #ccc; resize:vertical;
+    background:#fafafa; line-height:1.6;
   }
-  #genDataBtn { background:#555; }
-  #genDataBtn:hover { background:#333; }
-  #copyDataBtn { background:#2c5f8a; }
-  #copyDataBtn:hover { background:#1f466a; }
+  #genDataBtn { background: linear-gradient(135deg, #555, #333); }
+  #genDataBtn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+  #copyDataBtn { background: linear-gradient(135deg, #2c5f8a, #1f466a); }
+  #copyDataBtn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(44,95,138,0.4); }
   .submission-box button {
-    width:100%; padding:9px; margin-top:7px; font-size:13px; font-weight:bold;
-    border:none; border-radius:6px; cursor:pointer; color:#fff;
+    width:100%; padding:10px; margin-top:7px; font-size:13px; font-weight:bold;
+    border:none; border-radius:8px; cursor:pointer; color:#fff;
+    transition: transform .15s, box-shadow .15s;
   }
   .copy-note { font-size:11px; color:#2d8a3e; margin-top:4px; display:none; }
 
-  .empty-msg { color:#999; font-size:13px; text-align:center; padding:20px 0; }
+  .empty-msg { color:#aaa; font-size:13px; text-align:center; padding:20px 0; }
 
   @media (max-width: 900px) {
     .main-layout { flex-direction: column; }
@@ -175,7 +213,7 @@
     </div>
     <div class="header-right">
       <span class="org-label">応募者名・団体名（ポスターに表示されます）</span>
-      <input type="text" id="orgName" maxlength="30" placeholder="例）藤井寺高校 美術部">
+      <input type="text" id="orgName" maxlength="30" placeholder="例）藤井寺 太郎">
     </div>
   </div>
 
@@ -218,10 +256,10 @@
       <div class="panel-box submission-box">
         <h2>📋 提出用データ</h2>
         <p style="font-size:12px;color:#666;margin-top:-6px;">
-          色定義とスレッドカウントをテキスト形式で出力します（画像とあわせて提出してください）
+          色定義・スレッドカウント・選定理由をまとめて出力します（画像とあわせて提出してください）
         </p>
         <button id="genDataBtn">📝 提出用テキストを生成</button>
-        <textarea id="submissionText" rows="4" readonly placeholder="「提出用テキストを生成」を押すとここに表示されます"></textarea>
+        <textarea id="submissionText" rows="9" readonly placeholder="「提出用テキストを生成」を押すとここに表示されます"></textarea>
         <button id="copyDataBtn">📋 コピーする</button>
         <div class="copy-note" id="copyNote">✅ コピーしました！</div>
       </div>
@@ -567,7 +605,7 @@ function renderSelected(){
   });
 }
 
-/* ===================== 提出用テキスト生成 ===================== */
+/* ===================== 提出用テキスト生成（理由つき） ===================== */
 function generateSubmissionText(){
   if(selectedColors.length === 0){
     alert("色を選択してください");
@@ -582,7 +620,20 @@ function generateSubmissionText(){
 
   const countLine = selectedColors.map((c,i)=> `${codes[i]}${c.count}`).join(' ');
 
-  document.getElementById("submissionText").value = defLine + "\n" + countLine;
+  const reasonLines = selectedColors.map((c,i)=>
+    `${codes[i]}（${c.name} / ${c.hex}）：${c.reason ? c.reason : "（理由未記入）"}`
+  ).join('\n');
+
+  document.getElementById("submissionText").value =
+`【色定義】
+${defLine}
+
+【スレッド数】
+${countLine}
+
+【選定理由】
+${reasonLines}`;
+
   document.getElementById("copyNote").style.display = "none";
 }
 
@@ -721,13 +772,13 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight){
 }
 
 /* ===================== 色数に応じたレイアウト計算 =====================
-   ▼ タータンのサイズはできるだけ一定に保ち、統一感を優先
+   ▼ タータンを大きめ・一定サイズに保ち統一感を優先
 */
 function getLayoutParams(count){
   let patternSize;
-  if(count <= 8) patternSize = 680;
-  else if(count <= 10) patternSize = 620;
-  else patternSize = 560;
+  if(count <= 8) patternSize = 760;
+  else if(count <= 10) patternSize = 700;
+  else patternSize = 640;
 
   const cols = count <= 4 ? 2 : 3;
   return { patternSize, cols };
@@ -782,6 +833,11 @@ function createPoster(){
   drawCorner(ctx, outerMargin+22, pH-outerMargin-22, false, true, GOLD);
   drawCorner(ctx, pW-outerMargin-22, pH-outerMargin-22, true, true, GOLD);
 
+  /* ▼ フッター座標を先に確定（線・文字・カード下限を同じ基準で計算） */
+  const footerLineY = pH - 110;
+  const footerTextY = pH - 75;
+  const bottomLimit = footerLineY - 25;
+
   let y = innerMargin + 10;
 
   ctx.textAlign = "center";
@@ -790,7 +846,7 @@ function createPoster(){
   fillTextSpaced(ctx, "FUJIIDERA TARTAN DESIGN", pW/2, y, 6);
   y += 38;
 
-  /* ▼ 応募者名を小さく（50px→30px）してタータンのスペースを確保 */
+  /* ▼ 応募者名は小さめ（30px） */
   ctx.fillStyle = INK;
   ctx.font = "bold 30px 'Hiragino Mincho ProN', 'Yu Mincho', serif";
   ctx.fillText(orgName, pW/2, y + 26);
@@ -825,7 +881,7 @@ function createPoster(){
   ctx.restore();
   y += 28;
 
-  // --- タータン画像（中央配置・ほぼ固定サイズ） ---
+  // --- タータン画像（中央配置・大きめ固定サイズ） ---
   const patX = pW/2 - patternSize/2;
   ctx.save();
   ctx.shadowColor = "rgba(0,0,0,0.22)";
@@ -846,41 +902,46 @@ function createPoster(){
   ctx.fillText("使 用 カ ラ ー", innerMargin + 18, y + 14);
   y += 32;
 
-  // --- カードエリア：残りスペースから動的に高さを計算 ---
+  // --- カードエリア：残りスペースから動的に高さを計算し、縦中央寄せ ---
   const gap = 14;
   const patternAreaWidth = pW - innerMargin*2;
   const cardW = (patternAreaWidth - gap*(cols-1)) / cols;
   const rows = Math.ceil(count / cols);
 
-  const footerReserve = 120;
-  const bottomLimit = pH - outerMargin - footerReserve;
   const availableHeight = bottomLimit - y;
   let cardH = Math.floor((availableHeight - gap*(rows-1)) / rows);
-  cardH = Math.max(78, Math.min(150, cardH));
+  cardH = Math.max(70, Math.min(170, cardH));
+
+  let blockHeight = cardH*rows + gap*(rows-1);
+  if(blockHeight > availableHeight){
+    cardH = Math.max(50, Math.floor((availableHeight - gap*(rows-1)) / rows));
+    blockHeight = cardH*rows + gap*(rows-1);
+  }
+  const startY = y + Math.max(0, (availableHeight - blockHeight) / 2);
 
   selectedColors.forEach((c,i)=>{
     const code = codes[i];
     const col = i % cols;
     const row = Math.floor(i / cols);
     const cx = innerMargin + col*(cardW+gap);
-    const cy = y + row*(cardH+gap);
+    const cy = startY + row*(cardH+gap);
 
     ctx.save();
     ctx.shadowColor = "rgba(0,0,0,0.06)";
     ctx.shadowBlur = 10;
     ctx.fillStyle = "#ffffff";
-    roundRect(ctx, cx, cy, cardW, cardH, 4);
+    roundRect(ctx, cx, cy, cardW, cardH, 5);
     ctx.fill();
     ctx.restore();
     ctx.strokeStyle = "#e6ddc8";
     ctx.lineWidth = 1;
-    roundRect(ctx, cx, cy, cardW, cardH, 4);
+    roundRect(ctx, cx, cy, cardW, cardH, 5);
     ctx.stroke();
 
     ctx.fillStyle = GOLD;
     ctx.fillRect(cx, cy, 4, cardH);
 
-    const swSize = Math.min(34, cardH*0.3);
+    const swSize = Math.min(40, cardH*0.3);
     ctx.fillStyle = c.hex;
     ctx.fillRect(cx+14, cy+12, swSize, swSize);
     ctx.strokeStyle = "#ccc";
@@ -898,9 +959,13 @@ function createPoster(){
     ctx.textAlign = "center";
     ctx.fillText(code, badgeX, badgeY+4);
 
+    const nameFontSize = cardH >= 140 ? 18 : (cardH < 100 ? 14 : 16);
+    const reasonFontSize = cardH >= 140 ? 12 : (cardH < 100 ? 10 : 11);
+    const lineH = cardH >= 140 ? 17 : (cardH < 100 ? 13 : 15);
+
     ctx.textAlign = "left";
     ctx.fillStyle = INK;
-    ctx.font = `bold ${cardH < 100 ? 14 : 16}px 'Hiragino Mincho ProN', serif`;
+    ctx.font = `bold ${nameFontSize}px 'Hiragino Mincho ProN', serif`;
     ctx.fillText(c.name, badgeX+20, badgeY+5);
 
     ctx.font = "10px sans-serif";
@@ -914,23 +979,23 @@ function createPoster(){
     ctx.stroke();
 
     ctx.fillStyle = "#555";
-    ctx.font = `italic ${cardH < 100 ? 10 : 11}px 'Hiragino Mincho ProN', serif`;
+    ctx.font = `italic ${reasonFontSize}px 'Hiragino Mincho ProN', serif`;
     const reasonText = c.reason ? c.reason : "（理由未記入）";
-    wrapText(ctx, reasonText, cx+14, cy+12+swSize+38, cardW-26, cardH<100?13:15);
+    wrapText(ctx, reasonText, cx+14, cy+12+swSize+38, cardW-26, lineH);
   });
 
-  // --- フッター ---
+  // --- フッター（カード下限と同じ基準で描画、重なりなし） ---
   ctx.strokeStyle = GOLD_SOFT;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(pW/2 - 100, pH - 85);
-  ctx.lineTo(pW/2 + 100, pH - 85);
+  ctx.moveTo(pW/2 - 100, footerLineY);
+  ctx.lineTo(pW/2 + 100, footerLineY);
   ctx.stroke();
 
   ctx.textAlign = "center";
   ctx.fillStyle = "#a89a7a";
   ctx.font = "14px 'Hiragino Mincho ProN', serif";
-  fillTextSpaced(ctx, "藤井寺まちリンク協議会", pW/2, pH - 50, 4);
+  fillTextSpaced(ctx, "藤井寺まちリンク協議会", pW/2, footerTextY, 4);
 
   const link = document.createElement("a");
   link.download = `${orgName}_poster.jpg`;
