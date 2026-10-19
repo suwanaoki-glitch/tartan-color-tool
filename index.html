@@ -11,23 +11,9 @@
     background: linear-gradient(135deg,#f5f3ee,#e8e2d0);
     margin: 0; padding: 20px; color: #2a2a2a;
   }
-  header {
-    text-align: center; margin-bottom: 20px;
-  }
-  header h1 {
-    font-size: 28px; margin: 0; color: #14283C;
-    letter-spacing: 2px;
-  }
+  header { text-align: center; margin-bottom: 20px; }
+  header h1 { font-size: 28px; margin: 0; color: #14283C; letter-spacing: 2px; }
   header p { color: #6b4226; font-size: 13px; margin-top: 4px; }
-
-  .manual {
-    background: #fffdf8; border: 2px solid #c9972b;
-    border-radius: 10px; padding: 16px 20px; margin-bottom: 20px;
-    max-width: 1200px; margin-left:auto; margin-right:auto;
-    font-size: 13px; line-height: 1.8;
-  }
-  .manual h2 { margin:0 0 8px; font-size:15px; color:#8B2131; }
-  .manual ol { margin: 0; padding-left: 20px; }
 
   .container {
     display: flex; gap: 20px; max-width: 1200px; margin: 0 auto;
@@ -40,8 +26,17 @@
   .left-panel { flex: 1.2; min-width: 340px; }
   .right-panel { flex: 1; min-width: 340px; }
 
+  .manual {
+    background: #fffdf8; border: 2px solid #c9972b;
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 16px;
+    font-size: 13px; line-height: 1.9;
+  }
+  .manual h2 { margin:0 0 8px; font-size:15px; color:#8B2131; }
+  .manual ol { margin: 0; padding-left: 20px; }
+  .manual li { margin-bottom: 4px; }
+
   .cat-filters {
-    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; margin-top: 6px;
   }
   .cat-btn {
     padding: 6px 12px; border: 1px solid #999; border-radius: 20px;
@@ -51,7 +46,7 @@
 
   .palette-grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(90px,1fr));
-    gap: 8px; max-height: 480px; overflow-y: auto; padding: 4px;
+    gap: 8px; max-height: 420px; overflow-y: auto; padding: 4px;
   }
   .swatch {
     border: 1px solid #ccc; border-radius: 8px; padding: 6px;
@@ -67,16 +62,14 @@
   .swatch .name { font-weight:bold; }
   .swatch .hex { color:#777; }
 
-  .name-input-wrap {
-    text-align: right; margin-bottom: 12px;
-  }
+  .name-input-wrap { text-align: right; margin-bottom: 12px; }
   .name-input-wrap label { font-size:12px; color:#6b4226; display:block; margin-bottom:4px;}
   .name-input-wrap input {
     font-size: 16px; padding: 8px 10px; border:1px solid #ccc;
     border-radius: 6px; width: 100%; text-align:right;
   }
 
-  .selected-list { max-height: 260px; overflow-y:auto; margin-bottom: 14px; }
+  .selected-list { max-height: 240px; overflow-y:auto; margin-bottom: 14px; }
   .sel-item {
     display: flex; align-items: center; gap: 6px; padding: 6px;
     border-bottom: 1px solid #eee; font-size: 12px;
@@ -108,6 +101,7 @@
     flex: 1; min-width: 140px; padding: 10px; border: none; border-radius: 8px;
     font-size: 13px; cursor: pointer; font-weight:bold; color:#fff;
   }
+  .btn-generate { background:#C9972B; }
   .btn-download { background:#14283C; }
   .btn-poster { background:#8B2131; }
   .btn-copy { background:#5C6D5E; }
@@ -124,7 +118,6 @@
   }
   .toast.show { opacity: 1; }
 
-  /* ---- Poster Modal ---- */
   #posterOverlay {
     display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7);
     z-index: 1000; align-items:center; justify-content:center; flex-direction:column; gap:12px;
@@ -145,21 +138,22 @@
   <p>藤井寺まちリンク協議会 ｜ オリジナルタータン配色シミュレーター</p>
 </header>
 
-<div class="manual">
-  <h2>📖 使い方ガイド</h2>
-  <ol>
-    <li>下のカテゴリボタンで色のグループを絞り込み、気に入った色をクリックして選択します（最大8色）</li>
-    <li>右側の「選択中の色」で、順番の入れ替え・スレッド数（必ず偶数）・選んだ理由（20文字まで）を入力します</li>
-    <li>中央のプレビューで、本物のタータンと同じ「2/2綾織り・左右対称」パターンを確認できます</li>
-    <li>「繰り返し回数」を変えると柄の細かさを調整できます</li>
-    <li>右上に団体名・お名前を入力し、画像保存／ポスター作成／提出用コードのコピーができます</li>
-  </ol>
-</div>
-
 <div class="container">
 
-  <!-- LEFT: Palette -->
+  <!-- LEFT: Manual + Palette -->
   <div class="panel left-panel">
+    <div class="manual">
+      <h2>📖 使い方</h2>
+      <ol>
+        <li>まずは、下のパレットから<strong>2色以上</strong>を選んでください。</li>
+        <li>選んだ色の「糸の本数」を右側で微調整できます。</li>
+        <li>「🎨 タータン生成」を押すと、選んだ色でデザインが表示されます。</li>
+        <li>色の順番を並び替えたり、糸の本数を変えたりして、再度「タータン生成」を押しながら、お気に入りの一枚に仕上げてください。</li>
+        <li>それぞれの色を選んだ「理由」もぜひ入力してください（20文字まで）。</li>
+        <li>完成したら、提出用の<strong>画像データ</strong>と<strong>テキストデータ</strong>を出力してご用意ください。</li>
+      </ol>
+    </div>
+
     <h3>🎨 色を選ぶ（137色）</h3>
     <div class="cat-filters" id="catFilters"></div>
     <div class="palette-grid" id="paletteGrid"></div>
@@ -182,6 +176,10 @@
     </div>
 
     <canvas id="preview" width="600" height="600"></canvas>
+
+    <div class="action-btns">
+      <button class="btn-generate" onclick="updatePattern(); showToast('タータンを生成しました')">🎨 タータン生成</button>
+    </div>
 
     <div class="action-btns">
       <button class="btn-download" onclick="downloadHQ()">⬇ 高画質で保存</button>
@@ -265,7 +263,7 @@ Object.keys(RAW).forEach(cat=>{
 
 /* ===================== 状態 ===================== */
 let currentCat = "all";
-let selected = []; // {name,hex,code,cat,count,reason}
+let selected = [];
 
 /* ===================== 初期化 ===================== */
 function init(){
@@ -495,11 +493,9 @@ function drawPoster(canvas){
   canvas.height = H;
   const ctx = canvas.getContext("2d");
 
-  // 背景
   ctx.fillStyle = "#fdfcf7";
   ctx.fillRect(0,0,W,H);
 
-  // 装飾枠
   ctx.strokeStyle = "#8B2131";
   ctx.lineWidth = 6;
   ctx.strokeRect(20,20,W-40,H-40);
@@ -507,13 +503,11 @@ function drawPoster(canvas){
   ctx.lineWidth = 2;
   ctx.strokeRect(32,32,W-64,H-64);
 
-  // 上部団体名
   ctx.fillStyle = "#14283C";
   ctx.font = "bold 20px serif";
   ctx.textAlign = "center";
   ctx.fillText("藤井寺まちリンク協議会", W/2, 70);
 
-  // 名前／団体名（右上・大きめ）
   const name = document.getElementById("nameInput").value || "";
   ctx.fillStyle = "#333";
   ctx.font = "bold 30px serif";
@@ -524,13 +518,11 @@ function drawPoster(canvas){
   ctx.fillStyle = "#999";
   ctx.fillText("応募者名／団体名", W - 70, 150);
 
-  // タイトル
   ctx.textAlign = "center";
   ctx.fillStyle = "#8B2131";
   ctx.font = "bold 26px serif";
   ctx.fillText("オリジナルタータンデザイン", W/2, 200);
 
-  // パターン画像（760px固定）
   const unit = buildThreadUnit();
   const repeatCount = parseInt(document.getElementById("repeatCount").value) || 6;
   const tmp = document.createElement("canvas");
@@ -545,7 +537,6 @@ function drawPoster(canvas){
   ctx.lineWidth = 2;
   ctx.strokeRect(px, 240, 760, 760);
 
-  // 色リスト
   let listY = 240 + 760 + 50;
   ctx.textAlign = "left";
   ctx.font = "bold 18px sans-serif";
@@ -569,7 +560,6 @@ function drawPoster(canvas){
     ctx.fillText(c.reason ? `理由：${c.reason}` : "", 112, listY+16);
   });
 
-  // 下部団体名
   ctx.textAlign = "center";
   ctx.font = "14px serif";
   ctx.fillStyle = "#14283C";
