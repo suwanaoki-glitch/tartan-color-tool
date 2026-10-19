@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>藤井寺タータンカラー選定</title>
+<title>藤井寺タータンエディター</title>
 <style>
   :root {
     --navy: #0d1b3e;
@@ -24,12 +24,12 @@
   header {
     background: var(--navy);
     color: var(--gold-light);
-    padding: 28px 20px 22px;
+    padding: 24px 20px 18px;
     text-align: center;
     border-bottom: 3px solid var(--gold);
   }
   header h1 {
-    font-size: 30px;
+    font-size: 28px;
     letter-spacing: 6px;
     margin: 0;
     font-weight: 700;
@@ -41,6 +41,64 @@
     margin-top: 8px;
     font-family: "Times New Roman", serif;
   }
+
+  /* ---- 上部バー：コンセプト＋応募者名 ---- */
+  .top-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 18px 24px;
+    max-width: 1440px;
+    margin: 0 auto;
+    background: #fff;
+    border-bottom: 1px solid #e3e0d4;
+  }
+  .top-bar .concept-field { flex: 2 1 420px; }
+  .top-bar .name-field { flex: 1 1 260px; }
+
+  .top-bar label {
+    display: block;
+    font-size: 12px;
+    color: var(--navy);
+    margin-bottom: 6px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .top-bar .required-label::after {
+    content: " ※必須";
+    color: var(--error);
+    font-size: 11px;
+    font-weight: normal;
+  }
+  .top-bar textarea {
+    width: 100%;
+    min-height: 56px;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+  }
+  .name-field { text-align: right; }
+  .name-field label { text-align: right; }
+  .name-field input {
+    width: 100%;
+    text-align: right;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--navy);
+    border: none;
+    border-bottom: 2px solid var(--gold);
+    background: transparent;
+    padding: 6px 2px;
+    font-family: inherit;
+  }
+  .top-bar input.error, .top-bar textarea.error {
+    border-color: var(--error) !important;
+    background: #fdecea;
+  }
+
   .container {
     display: flex;
     flex-wrap: wrap;
@@ -68,39 +126,7 @@
     letter-spacing: 1px;
   }
   .box ol { padding-left: 20px; font-size: 13px; line-height: 1.9; margin: 0; }
-
-  .required-label::after {
-    content: " ※必須";
-    color: var(--error);
-    font-size: 11px;
-    font-weight: normal;
-  }
-
-  .field-group { margin-bottom: 16px; }
-  .field-group label {
-    display: block;
-    font-size: 13px;
-    color: var(--navy);
-    margin-bottom: 6px;
-    font-weight: 700;
-    letter-spacing: 1px;
-  }
-  .field-group input[type=text],
-  .field-group textarea,
-  .field-group input[type=number] {
-    width: 100%;
-    padding: 9px 11px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    font-family: inherit;
-    font-size: 14px;
-    background: #fff;
-  }
-  .field-group textarea { resize: vertical; min-height: 70px; }
-  .field-group input.error, .field-group textarea.error {
-    border-color: var(--error) !important;
-    background: #fdecea;
-  }
+  .box .note { font-size: 11px; color: var(--navy); margin-top: 10px; background: #f3efe0; padding: 8px 10px; border-radius: 4px; }
 
   .toast {
     position: fixed;
@@ -217,22 +243,6 @@
     border-radius: 3px; padding: 5px 10px; font-size: 11px; cursor: pointer;
   }
 
-  .btn-main {
-    background: var(--navy);
-    color: var(--gold-light);
-    border: none;
-    padding: 13px 24px;
-    font-size: 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    letter-spacing: 3px;
-    font-family: inherit;
-    width: 100%;
-    margin-top: 6px;
-    transition: 0.15s;
-  }
-  .btn-main:hover { background: var(--navy-light); }
-
   .btn-sub {
     background: #fff;
     color: var(--navy);
@@ -262,6 +272,13 @@
     border-radius: 6px;
     padding: 22px;
     text-align: center;
+  }
+  .preview-label {
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    font-weight: 700;
   }
 
   .export-section {
@@ -297,14 +314,29 @@
     display: flex; gap: 12px; align-items: flex-end; margin-bottom: 14px;
   }
   .settings-row .field-group { flex: 1; margin-bottom: 0; }
+  .settings-row label { display:block; font-size: 12px; color: var(--navy); margin-bottom: 6px; font-weight: 700; }
+  .settings-row input[type=number] {
+    width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 3px; font-family: inherit;
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>藤 井 寺 タ ー タ ン カ ラ ー 選 定</h1>
-  <div class="sub">FUJIIDERA TARTAN COLOR DESIGN</div>
+  <h1>藤 井 寺 タ ー タ ン エ デ ィ タ ー</h1>
+  <div class="sub">FUJIIDERA TARTAN EDITOR</div>
 </header>
+
+<div class="top-bar">
+  <div class="concept-field">
+    <label class="required-label" for="concept">コンセプト・想い</label>
+    <textarea id="concept" placeholder="このタータンに込めた想いをご記入ください"></textarea>
+  </div>
+  <div class="name-field">
+    <label class="required-label" for="orgName">応募者名／団体名</label>
+    <input type="text" id="orgName" placeholder="藤井寺 太郎">
+  </div>
+</div>
 
 <div class="container">
   <div class="left-panel">
@@ -312,23 +344,13 @@
     <div class="box">
       <h2>使い方</h2>
       <ol>
-        <li>下のパレットから2色以上を選択します。</li>
-        <li>糸の本数を微調整してタータン生成を押します。</li>
-        <li>デザインが表示されたら、色の並び替えや糸の数変更を行い、再度タータン生成を押してください。</li>
-        <li>名前／団体名、コンセプト・想い、各色の選定理由をすべてご記入ください。</li>
+        <li>下のパレットから2色以上を選択 → 右側のプレビューが自動で更新されます。</li>
+        <li>糸の本数や並び順を変更すると、その都度自動でプレビューが更新されます。</li>
+        <li>上部の「応募者名」「コンセプト・想い」を入力します。</li>
+        <li>各色の選定理由（全色）を入力します。</li>
         <li>完成したら、提出用の画像とテキストデータを出力してください。</li>
       </ol>
-    </div>
-
-    <div class="box">
-      <div class="field-group">
-        <label class="required-label" for="orgName">応募者名／団体名</label>
-        <input type="text" id="orgName" placeholder="例：藤井寺 太郎">
-      </div>
-      <div class="field-group">
-        <label class="required-label" for="concept">コンセプト・想い</label>
-        <textarea id="concept" placeholder="このタータンに込めた想いをご記入ください"></textarea>
-      </div>
+      <div class="note">※ プレビューは自動更新されるため、生成ボタンは不要です。</div>
     </div>
 
     <div class="box">
@@ -347,13 +369,13 @@
       </div>
       <div class="selected-list" id="selectedList"></div>
       <div class="thread-rule">※ 糸の本数は必ず2の倍数になります（自動補正されます）</div>
-      <button class="btn-main" id="generateBtn">タ ー タ ン 生 成</button>
     </div>
 
   </div>
 
   <div class="right-panel">
     <div class="result-panel">
+      <div class="preview-label">LIVE PREVIEW</div>
       <canvas id="tartanCanvas" width="760" height="760"></canvas>
       <div class="export-section">
         <button class="btn-sub" id="downloadImgBtn">画像を保存（高画質）</button>
@@ -552,7 +574,7 @@ const CATEGORIES = [
 ========================================================= */
 let currentCategory = 'all';
 let selectedColors = []; // {id,name,hex,threads,reason}
-let lastSett = null; // 生成済みセット
+let lastSett = null;
 
 /* =========================================================
    初期化
@@ -561,8 +583,9 @@ function init() {
   renderCategoryFilter();
   renderPalette();
   renderSelectedList();
+  renderPreview(); // 起動時に空プレビューを表示
 
-  document.getElementById('generateBtn').addEventListener('click', onGenerate);
+  document.getElementById('repeatCount').addEventListener('input', renderPreview);
   document.getElementById('downloadImgBtn').addEventListener('click', onDownloadImage);
   document.getElementById('createPosterBtn').addEventListener('click', onCreatePoster);
   document.getElementById('copyDataBtn').addEventListener('click', onCopyData);
@@ -613,6 +636,7 @@ function toggleColor(c) {
   }
   renderPalette();
   renderSelectedList();
+  renderPreview(); // ★ 選択の瞬間に自動更新
 }
 
 function renderSelectedList() {
@@ -651,6 +675,13 @@ function renderSelectedList() {
   });
 
   wrap.querySelectorAll('.thread-input').forEach(input => {
+    input.addEventListener('input', e => {
+      const idx = +e.target.dataset.idx;
+      let val = parseInt(e.target.value);
+      if (isNaN(val)) return;
+      selectedColors[idx].threads = val;
+      renderPreview(); // ★ 入力中も即時反映
+    });
     input.addEventListener('change', e => {
       const idx = +e.target.dataset.idx;
       let val = parseInt(e.target.value) || 2;
@@ -661,6 +692,7 @@ function renderSelectedList() {
       if (val < 2) val = 2;
       selectedColors[idx].threads = val;
       e.target.value = val;
+      renderPreview();
     });
   });
 
@@ -674,6 +706,7 @@ function renderSelectedList() {
         [selectedColors[idx + 1], selectedColors[idx]] = [selectedColors[idx], selectedColors[idx + 1]];
       }
       renderSelectedList();
+      renderPreview(); // ★ 並び替えも即時反映
     });
   });
 
@@ -683,6 +716,7 @@ function renderSelectedList() {
       selectedColors.splice(idx, 1);
       renderPalette();
       renderSelectedList();
+      renderPreview(); // ★ 削除も即時反映
     });
   });
 }
@@ -701,7 +735,7 @@ function showToast(msg) {
 }
 
 /* =========================================================
-   必須項目バリデーション
+   必須項目バリデーション（保存・提出時のみ）
 ========================================================= */
 function validateRequiredFields() {
   let valid = true;
@@ -739,9 +773,7 @@ function validateRequiredFields() {
   });
 
   if (!valid) {
-    if (!orgInput.value.trim() || !conceptInput.value.trim() || reasonMissing) {
-      showToast('未入力の項目があります。赤枠の箇所をご確認ください。');
-    }
+    showToast('未入力の項目があります。赤枠の箇所をご確認ください。');
     orgInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
@@ -749,7 +781,7 @@ function validateRequiredFields() {
 }
 
 /* =========================================================
-   タータン生成（真の2/2綾織り・左右対称ミラー）
+   タータン生成ロジック（真の2/2綾織り・左右対称ミラー）
 ========================================================= */
 function buildSett(colors) {
   let seq = [];
@@ -779,17 +811,26 @@ function drawTartan(ctx, size, sett, repeat) {
   }
 }
 
-function onGenerate() {
-  if (!validateRequiredFields()) return;
+/* ★ リアルタイムプレビュー関数 */
+function renderPreview() {
+  const canvas = document.getElementById('tartanCanvas');
+  const ctx = canvas.getContext('2d');
+
+  if (selectedColors.length < 2) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#f5f3ec';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#999';
+    ctx.font = '18px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('色を2色以上選択してください', canvas.width / 2, canvas.height / 2);
+    lastSett = null;
+    return;
+  }
 
   const repeat = parseInt(document.getElementById('repeatCount').value) || 6;
   lastSett = buildSett(selectedColors);
-
-  const canvas = document.getElementById('tartanCanvas');
-  const ctx = canvas.getContext('2d');
   drawTartan(ctx, canvas.width, lastSett, repeat);
-
-  showToast('タータンを生成しました。');
 }
 
 /* =========================================================
@@ -798,7 +839,7 @@ function onGenerate() {
 function onDownloadImage() {
   if (!validateRequiredFields()) return;
   if (!lastSett) {
-    showToast('先に「タータン生成」を押してください。');
+    showToast('色を2色以上選択してください。');
     return;
   }
   const repeat = parseInt(document.getElementById('repeatCount').value) || 6;
@@ -816,14 +857,12 @@ function onDownloadImage() {
 }
 
 /* =========================================================
-   提出用データ（ポスター画像）作成
-   ※ 下部の協議会名と内容が重ならないよう、
-     Yカーソル方式で高さを動的計算する
+   提出用データ（画像）作成 ― 2列レイアウト版
 ========================================================= */
 function onCreatePoster() {
   if (!validateRequiredFields()) return;
   if (!lastSett) {
-    showToast('先に「タータン生成」を押してください。');
+    showToast('色を2色以上選択してください。');
     return;
   }
 
@@ -835,31 +874,36 @@ function onCreatePoster() {
   const posterWidth = 900;
   const margin = 50;
 
-  // --- パターン画像を生成 ---
+  // --- パターン画像生成 ---
   const patCanvas = document.createElement('canvas');
   patCanvas.width = patternSize;
   patCanvas.height = patternSize;
   drawTartan(patCanvas.getContext('2d'), patternSize, lastSett, repeat);
 
-  // --- コンセプト文の折り返し計算 ---
-  const posterCtxTmp = document.createElement('canvas').getContext('2d');
-  posterCtxTmp.font = '15px serif';
-  const conceptLines = wrapText(posterCtxTmp, concept, posterWidth - margin * 2, 15);
+  // --- コンセプト文折り返し ---
+  const tmpCtx = document.createElement('canvas').getContext('2d');
+  const conceptLines = wrapText(tmpCtx, concept, posterWidth - margin * 2, 15);
 
-  // --- 色リストの行数（1色あたりの高さ） ---
-  const colorRowHeight = 92;
-  const colorListHeight = selectedColors.length * colorRowHeight;
+  // --- 色一覧：2列レイアウト計算 ---
+  const cols = 2;
+  const colGap = 26;
+  const colWidth = (posterWidth - margin * 2 - colGap) / cols;
+  const swSize = 78;
+  const rowHeight = 108; // スウォッチ＋理由(最大2行)＋コード行
 
-  // --- 全体の高さをカーソル方式で積み上げ計算 ---
+  const rows = Math.ceil(selectedColors.length / cols);
+  const colorListHeight = rows * rowHeight;
+
+  // --- 高さをカーソル方式で積み上げ計算 ---
   let cursorY = 0;
-  cursorY += 60;                     // 上部名前欄
-  cursorY += patternSize + 40;       // パターン画像
-  cursorY += 30;                     // コンセプト見出し
-  cursorY += conceptLines.length * 22 + 20; // コンセプト本文
-  cursorY += 40;                     // 区切り線＋色一覧見出し
-  cursorY += colorListHeight;        // 色一覧
-  cursorY += 30;                     // 区切り線
-  cursorY += 70;                     // 下部協議会名エリア（十分な余白を確保）
+  cursorY += 60;                       // 上部名前欄
+  cursorY += patternSize + 40;         // パターン画像
+  cursorY += 30;                       // コンセプト見出し
+  cursorY += conceptLines.length * 22 + 24; // コンセプト本文
+  cursorY += 46;                       // 色一覧見出し
+  cursorY += colorListHeight;          // 色一覧本体
+  cursorY += 40;                       // 区切り線までの余白
+  cursorY += 90;                       // 下部協議会名エリア（余白を広め確保）
 
   const posterHeight = cursorY + margin * 2;
 
@@ -916,7 +960,7 @@ function onCreatePoster() {
     ctx.fillText(line, margin, y);
     y += 22;
   });
-  y += 20;
+  y += 22;
 
   // 使用色一覧 見出し
   ctx.font = 'bold 16px serif';
@@ -929,35 +973,49 @@ function onCreatePoster() {
   ctx.stroke();
   y += 30;
 
-  // 色一覧（完全1列・理由を大きく表示）
-  selectedColors.forEach(c => {
-    const swSize = 72;
+  // --- 色一覧 2列描画 ---
+  const listStartY = y;
+  const textAreaWidth = colWidth - swSize - 16;
+
+  selectedColors.forEach((c, i) => {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const bx = margin + col * (colWidth + colGap);
+    const by = listStartY + row * rowHeight;
+
+    // スウォッチ（大きめ）
     ctx.fillStyle = c.hex;
-    ctx.fillRect(margin, y, swSize, swSize);
+    ctx.fillRect(bx, by, swSize, swSize);
     ctx.strokeStyle = '#ccc';
-    ctx.strokeRect(margin, y, swSize, swSize);
+    ctx.strokeRect(bx, by, swSize, swSize);
 
-    const textX = margin + swSize + 20;
-    ctx.fillStyle = '#0d1b3e';
-    ctx.font = 'bold 15px serif';
-    ctx.fillText(`${c.id}　${c.name}　${c.hex}　／　${c.threads}本`, textX, y + 22);
+    const textX = bx + swSize + 16;
 
-    ctx.fillStyle = '#222';
-    ctx.font = '16px serif';
-    ctx.fillText(`理由：${c.reason}`, textX, y + 50);
+    // 理由（大きく強調）
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = '17px serif';
+    const reasonLines = wrapText(ctx, `理由：${c.reason}`, textAreaWidth, 17).slice(0, 2);
+    reasonLines.forEach((line, li) => {
+      ctx.fillText(line, textX, by + 24 + li * 21);
+    });
 
-    y += colorRowHeight;
+    // コード・スレッド数（小さく・控えめ）
+    ctx.fillStyle = '#999';
+    ctx.font = '10px serif';
+    ctx.fillText(`${c.id} ${c.name}　${c.hex}　${c.threads}本`, textX, by + swSize + 2);
   });
 
-  y += 10;
+  y = listStartY + colorListHeight + 20;
+
+  // 区切り線（協議会名の上の余白を広めに）
   ctx.strokeStyle = '#c9a227';
   ctx.beginPath();
   ctx.moveTo(margin, y);
   ctx.lineTo(posterWidth - margin, y);
   ctx.stroke();
-  y += 40;
+  y += 60; // ★ 広めの余白
 
-  // 下部：協議会名（内容と絶対に重ならない位置に自動配置）
+  // 下部：協議会名
   ctx.textAlign = 'center';
   ctx.fillStyle = '#0d1b3e';
   ctx.font = '13px serif';
@@ -976,7 +1034,7 @@ function onCreatePoster() {
     link.click();
   };
 
-  // --- テキストデータ生成 ---
+  // --- テキストデータ ---
   generateSubmissionText(orgName, concept);
 
   showToast('提出用データを作成しました。');
