@@ -5,308 +5,1110 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>タータンカラー選定ツール｜藤井寺まちリンク協議会</title>
 <style>
-  * { box-sizing: border-box; }
-  body {
-    font-family: "游ゴシック","Yu Gothic","Hiragino Kaku Gothic ProN",sans-serif;
-    margin: 0; background: #f4f2ee; color: #333;
+  :root{
+    --navy:#0d1b3e;
+    --gold:#c9a227;
+    --bg:#fdfcf8;
   }
-  header {
-    background: linear-gradient(135deg,#1a2a3a,#2c3e50);
-    color: #fff; padding: 20px 24px;
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
+    background:var(--bg);
+    color:#222;
+    line-height:1.6;
   }
-  header h1 { margin: 0; font-size: 22px; }
-  header p { margin: 4px 0 0; font-size: 12px; opacity: 0.85; }
-
-  .container { display: flex; gap: 20px; padding: 20px; align-items: flex-start; flex-wrap: wrap; }
-  .left-panel { width: 340px; flex-shrink: 0; }
-  .right-panel { flex: 1; min-width: 400px; }
-
-  .box {
-    background: #fff; border: 1px solid #ddd; border-radius: 8px;
-    padding: 14px; margin-bottom: 16px;
+  header{
+    background:var(--navy);
+    color:#fff;
+    padding:20px 24px;
+    border-bottom:4px solid var(--gold);
   }
-  .box h2 { font-size: 12px; color: #888; margin: 0 0 10px; letter-spacing: 1px; }
-
-  .manual { font-size: 12px; line-height: 1.8; color: #555; }
-  .manual li { margin-bottom: 4px; }
-
-  textarea, input[type=text], input[type=number] {
-    width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;
-    font-size: 14px; font-family: inherit;
+  header h1{
+    margin:0 0 4px;
+    font-size:22px;
+    letter-spacing:1px;
   }
-  textarea { resize: vertical; min-height: 70px; }
-  label.field-label { font-size: 12px; color: #888; display:block; margin-bottom:4px; }
-  .field { margin-bottom: 14px; }
-  .field.error input, .field.error textarea { border-color: #e74c3c; background:#fff5f5; }
-
-  #previewCanvas { width: 100%; aspect-ratio: 1/1; border: 1px solid #ddd; border-radius: 6px; background:#eee; }
-
-  .param-row { display:flex; gap:10px; }
-  .param-row .field { flex:1; }
-
-  .btn {
-    display:inline-block; padding:10px 16px; border:none; border-radius:6px;
-    background:#1a2a3a; color:#fff; font-size:13px; cursor:pointer; margin:4px 4px 0 0;
-    transition: background .2s;
+  header p{
+    margin:0;
+    font-size:13px;
+    color:#dcdcdc;
   }
-  .btn:hover { background:#2c3e50; }
-  .btn.gold { background:#b8860b; }
-  .btn.gold:hover { background:#a07709; }
-  .btn.outline { background:#fff; color:#1a2a3a; border:1px solid #1a2a3a; }
+  .container{
+    display:flex;
+    flex-wrap:wrap;
+    gap:24px;
+    padding:24px;
+    align-items:flex-start;
+  }
+  .panel{
+    background:#fff;
+    border:1px solid #e3ddcf;
+    border-radius:10px;
+    padding:18px 20px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.05);
+  }
+  .left-panel{flex:1 1 420px; min-width:380px;}
+  .right-panel{flex:1 1 420px; min-width:380px; position:sticky; top:16px;}
 
-  .cat-filters { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
-  .cat-btn {
-    padding:5px 10px; font-size:12px; border:1px solid #ccc; border-radius:14px;
-    background:#fff; cursor:pointer;
+  .manual-box{
+    background:#faf6ea;
+    border:1px dashed var(--gold);
+    border-radius:8px;
+    padding:12px 14px;
+    font-size:13px;
+    margin-bottom:18px;
+    color:#444;
   }
-  .cat-btn.active { background:#1a2a3a; color:#fff; border-color:#1a2a3a; }
+  .manual-box b{color:var(--navy);}
 
-  .color-grid {
-    display:grid; grid-template-columns: repeat(auto-fill,minmax(42px,1fr));
-    gap:6px; max-height: 320px; overflow-y:auto; padding:4px;
-    border:1px solid #eee; border-radius:6px;
+  .section-title{
+    font-size:13px;
+    font-weight:bold;
+    color:var(--navy);
+    letter-spacing:1px;
+    margin:18px 0 8px;
+    border-left:4px solid var(--gold);
+    padding-left:8px;
   }
-  .swatch {
-    width:100%; aspect-ratio:1/1; border-radius:5px; cursor:pointer;
-    border:2px solid transparent; position:relative;
-  }
-  .swatch.selected { border-color:#b8860b; box-shadow:0 0 0 2px #fff, 0 0 0 4px #b8860b; }
+  .section-title:first-of-type{margin-top:0;}
 
-  .selected-list { display:flex; flex-direction:column; gap:10px; }
-  .selected-item {
-    display:flex; align-items:center; gap:10px; padding:10px;
-    border:1px solid #eee; border-radius:6px; background:#fafafa;
+  label.field-label{
+    display:block;
+    font-size:12px;
+    color:#666;
+    margin-bottom:4px;
   }
-  .selected-item .sw { width:36px; height:36px; border-radius:5px; flex-shrink:0; border:1px solid #ccc; }
-  .selected-item .info { flex:1; min-width:0; }
-  .selected-item .name { font-size:13px; font-weight:bold; }
-  .selected-item .reason {
-    font-size:20px; width:100%; border:none; border-bottom:1px solid #ccc;
-    padding:4px 2px; background:transparent; margin-top:4px;
+  input[type=text], textarea{
+    width:100%;
+    padding:8px 10px;
+    font-size:14px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    font-family:inherit;
+    resize:vertical;
   }
-  .selected-item .thread { width:55px; font-size:13px; text-align:center; }
-  .selected-item .ctrl { display:flex; flex-direction:column; gap:2px; }
-  .selected-item .ctrl button {
-    font-size:11px; padding:2px 6px; cursor:pointer; border:1px solid #ccc; background:#fff; border-radius:3px;
-  }
-  .remove-btn { color:#e74c3c; border-color:#e74c3c !important; }
+  textarea{min-height:70px;}
 
-  #submissionOutput { width:100%; min-height:160px; font-size:12px; font-family: monospace; }
-
-  .toast {
-    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
-    background: rgba(0,0,0,0.8); color:#fff; padding:10px 18px; border-radius:6px;
-    font-size:13px; z-index: 999;
-  }
-  .hidden { display:none !important; }
-
-  .modal {
-    position: fixed; inset:0; background: rgba(0,0,0,0.6);
-    display:flex; align-items:center; justify-content:center; z-index: 1000; padding: 20px;
-  }
-  .modal-content {
-    background:#fff; padding:20px; border-radius:8px; max-width:95vw; max-height:95vh; overflow:auto; text-align:center;
-  }
-  #posterCanvas { max-width: 100%; border:1px solid #ccc; }
-
-  footer {
-    margin-top: 10px; padding: 16px; text-align: center; font-size: 10px;
-    color: #999; border-top: 1px solid #ddd; line-height: 1.6;
+  .error-text{
+    color:#c0392b;
+    font-size:12px;
+    margin-top:4px;
+    min-height:14px;
   }
 
-  #loadingMsg { font-size:12px; color:#b8860b; margin-top:6px; }
+  .filter-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-bottom:10px;
+  }
+  .filter-btn{
+    padding:5px 12px;
+    font-size:12px;
+    border:1px solid var(--navy);
+    background:#fff;
+    color:var(--navy);
+    border-radius:16px;
+    cursor:pointer;
+    transition:0.15s;
+  }
+  .filter-btn.active, .filter-btn:hover{
+    background:var(--navy);
+    color:#fff;
+  }
+
+  .palette{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(64px,1fr));
+    gap:5px;
+    max-height:340px;
+    overflow-y:auto;
+    border:1px solid #e0e0e0;
+    border-radius:8px;
+    padding:8px;
+    background:#fafafa;
+  }
+  .swatch{
+    aspect-ratio:1;
+    border-radius:5px;
+    border:2px solid transparent;
+    cursor:pointer;
+    position:relative;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    transition:0.1s;
+  }
+  .swatch:hover{transform:scale(1.06); z-index:2;}
+  .swatch.selected{
+    border-color:var(--gold);
+    box-shadow:0 0 0 2px var(--navy);
+  }
+  .swatch .lbl{
+    font-size:8px;
+    background:rgba(255,255,255,0.85);
+    color:#000;
+    width:100%;
+    text-align:center;
+    border-radius:0 0 3px 3px;
+    padding:1px 0;
+    white-space:nowrap;
+    overflow:hidden;
+  }
+  .swatch .check{
+    position:absolute;
+    top:2px; right:2px;
+    background:var(--gold);
+    color:#fff;
+    font-size:10px;
+    width:14px;height:14px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  .selected-count{
+    font-size:12px;
+    color:#555;
+    margin:6px 0 10px;
+  }
+
+  .selected-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .selected-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px;
+    border:1px solid #eee;
+    border-radius:8px;
+    background:#fff;
+  }
+  .selected-row .sw{
+    width:36px;height:36px;
+    border-radius:5px;
+    border:1px solid #ccc;
+    flex:none;
+  }
+  .selected-row .meta{
+    font-size:10px;
+    color:#888;
+    flex:none;
+    width:72px;
+    line-height:1.3;
+  }
+  .selected-row input[type=text]{
+    flex:1;
+    font-size:20px;
+    padding:6px 8px;
+    border:1px solid #ddd;
+    border-radius:6px;
+  }
+  .selected-row input[type=number]{
+    width:56px;
+    font-size:13px;
+    padding:4px;
+    text-align:center;
+    border:1px solid #ddd;
+    border-radius:6px;
+  }
+  .selected-row .btns{
+    display:flex;
+    gap:2px;
+    flex:none;
+  }
+  .selected-row .btns button{
+    width:24px;height:24px;
+    font-size:11px;
+    border:1px solid #ccc;
+    background:#f7f7f7;
+    border-radius:4px;
+    cursor:pointer;
+  }
+  .selected-row .btns button:hover{background:var(--gold); color:#fff;}
+
+  .pattern-settings{
+    display:flex;
+    gap:16px;
+    align-items:center;
+    flex-wrap:wrap;
+    margin-top:10px;
+  }
+  .pattern-settings label{font-size:13px; color:#444;}
+  .pattern-settings input[type=number]{
+    width:60px;
+    padding:4px;
+    border:1px solid #ccc;
+    border-radius:6px;
+  }
+
+  #previewCanvas{
+    width:100%;
+    max-width:420px;
+    aspect-ratio:1;
+    display:block;
+    margin:0 auto 14px;
+    border:1px solid #ddd;
+    border-radius:6px;
+    background:#f2f2f2;
+  }
+
+  .btn-main{
+    display:block;
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    font-size:14px;
+    font-weight:bold;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    color:#fff;
+    background:var(--navy);
+    transition:0.15s;
+  }
+  .btn-main:hover{background:#15265c;}
+  .btn-main.gold{background:var(--gold); color:#2a2000;}
+  .btn-main.gold:hover{background:#b8921e;}
+
+  #posterPreview{
+    width:100%;
+    display:none;
+    margin-top:14px;
+    border:1px solid #ddd;
+    border-radius:6px;
+  }
+  #posterDownloadRow{
+    display:none;
+    gap:8px;
+    margin-top:8px;
+  }
+  #posterDownloadRow button{flex:1;}
+
+  #submissionData{
+    min-height:140px;
+    font-size:12px;
+    font-family:monospace;
+    margin-top:8px;
+  }
+
+  footer{
+    text-align:center;
+    padding:30px 20px 40px;
+    font-size:11px;
+    color:#999;
+    border-top:1px solid #eee;
+    margin-top:20px;
+  }
+  footer .org-name{
+    font-size:14px;
+    color:var(--navy);
+    font-weight:bold;
+    margin-bottom:6px;
+  }
+  footer .legal{
+    margin-top:10px;
+    color:#bbb;
+    font-size:10px;
+    line-height:1.7;
+  }
+
+  #toast{
+    position:fixed;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--navy);
+    color:#fff;
+    padding:10px 20px;
+    border-radius:20px;
+    font-size:13px;
+    opacity:0;
+    pointer-events:none;
+    transition:0.25s;
+    z-index:999;
+  }
+  #toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>🏴 タータンカラー選定ツール</h1>
-  <p>藤井寺まちリンク協議会｜公式137色から選んでオリジナルタータンを作成</p>
+  <h1>🎨 タータンカラー選定ツール</h1>
+  <p>藤井寺まちリンク協議会｜公式タータンレジスター137色に基づくオリジナルタータン作成</p>
 </header>
 
 <div class="container">
 
-  <!-- ================= 左パネル ================= -->
-  <div class="left-panel">
+  <!-- ============ 左パネル ============ -->
+  <div class="panel left-panel">
 
-    <div class="box">
-      <h2>📖 つかいかた</h2>
-      <ol class="manual">
-        <li>右側のパレットから色を選ぶ（最大8色）</li>
-        <li>各色のスレッド数（偶数）・理由を入力</li>
-        <li>必要なら色の順番を↑↓で並べ替え</li>
-        <li>「🧵 タータン生成」ボタンを押す</li>
-        <li>画像保存 or ポスター作成 or 提出コードをコピー</li>
-      </ol>
+    <div class="manual-box">
+      <b>📘 使い方</b><br>
+      ① 下の色見本から<b>2〜8色</b>を選択<br>
+      ② 選んだ色の「糸数」「理由」を入力（並び替え可）<br>
+      ③ 右側でプレビューを確認しながら調整<br>
+      ④「高画質で保存」または「提出用データ作成」を押す
     </div>
 
-    <div class="box">
-      <h2>コンセプト・想い</h2>
-      <div class="field">
-        <label class="field-label">応募者名／団体名</label>
-        <input type="text" id="applicantName" placeholder="例：山田太郎 / ○○チーム">
-      </div>
-      <div class="field">
-        <label class="field-label">コンセプト・想い</label>
-        <textarea id="conceptText" placeholder="このタータンに込めた想いを書いてください"></textarea>
-      </div>
-    </div>
+    <div class="section-title">コンセプト・想い</div>
+    <label class="field-label">このタータンに込めた思いを書いてください</label>
+    <textarea id="concept" maxlength="200" placeholder="例：藤井寺の歴史と自然、人の温かさを表現しました。"></textarea>
 
-    <div class="box">
-      <h2>🔍 リアルタイムプレビュー</h2>
-      <canvas id="previewCanvas"></canvas>
-    </div>
+    <div class="section-title">応募者名／団体名</div>
+    <input type="text" id="orgName" maxlength="40" placeholder="例：〇〇〇〇">
 
-    <div class="box">
-      <h2>⚙️ パターン設定</h2>
-      <div class="param-row">
-        <div class="field">
-          <label class="field-label">繰り返し回数</label>
-          <input type="number" id="repeatInput" value="6" min="1" max="20">
-        </div>
-        <div class="field">
-          <label class="field-label">画像サイズ(px)</label>
-          <input type="number" id="sizeInput" value="1600" min="400" max="3000" step="100">
-        </div>
-      </div>
-      <button class="btn" onclick="generateMain()">🧵 タータン生成</button>
-      <div id="loadingMsg" class="hidden">生成中…少々お待ちください</div>
-      <div style="margin-top:10px;">
-        <canvas id="mainCanvas" style="width:100%; border:1px solid #ddd; border-radius:6px;"></canvas>
-      </div>
-      <button class="btn gold" onclick="downloadImage()">⬇ 高画質で保存（JPEG）</button>
-      <button class="btn outline" onclick="createPoster()">🏆 ポスター作成</button>
-    </div>
+    <div class="section-title">カテゴリで絞り込み</div>
+    <div class="filter-row" id="categoryFilter"></div>
 
+    <div class="section-title">色を選択（公式137色）</div>
+    <div class="palette" id="paletteContainer"></div>
+    <div class="selected-count" id="selectedCount"></div>
+
+    <div class="section-title">選んだ色（並び替え・糸数・理由）</div>
+    <div class="selected-list" id="selectedList"></div>
+
+    <div class="section-title">パターン設定</div>
+    <div class="pattern-settings">
+      <label>繰り返し回数：
+        <input type="number" id="repeatCount" min="2" max="10" value="6">
+      </label>
+    </div>
+    <div class="error-text" id="formError"></div>
   </div>
 
-  <!-- ================= 右パネル ================= -->
-  <div class="right-panel">
+  <!-- ============ 右パネル ============ -->
+  <div class="panel right-panel">
+    <div class="section-title">リアルタイムプレビュー（2/2綾織り・左右対称）</div>
+    <canvas id="previewCanvas" width="420" height="420"></canvas>
 
-    <div class="box">
-      <h2>🎨 公式137色パレット</h2>
-      <div class="cat-filters" id="catFilters"></div>
-      <div class="color-grid" id="colorGrid"></div>
+    <button class="btn-main" id="downloadImageBtn">⬇ 高画質で保存（JPEG）</button>
+    <button class="btn-main gold" id="createPosterBtn">📋 提出用データ作成</button>
+
+    <img id="posterPreview">
+    <div id="posterDownloadRow">
+      <button class="btn-main" id="downloadPosterBtn">⬇ 提出用ポスターを保存</button>
     </div>
 
-    <div class="box">
-      <h2>使用色一覧（最大8色）</h2>
-      <div class="selected-list" id="selectedList">
-        <p style="font-size:12px;color:#999;">まだ色が選択されていません</p>
-      </div>
-    </div>
-
-    <div class="box">
-      <h2>📋 提出用データ</h2>
-      <button class="btn" onclick="generateSubmissionCode()">提出コードを生成</button>
-      <button class="btn outline" onclick="copySubmission()">📋 コピー</button>
-      <textarea id="submissionOutput" readonly style="margin-top:10px;"></textarea>
-    </div>
-
+    <div class="section-title">提出用テキストデータ</div>
+    <textarea id="submissionData" readonly placeholder="「提出用データ作成」を押すとここに出力されます"></textarea>
+    <button class="btn-main" id="copyDataBtn">📄 テキストをコピー</button>
   </div>
 
 </div>
 
-<!-- ================= ポスターモーダル ================= -->
-<div class="modal hidden" id="posterModal">
-  <div class="modal-content">
-    <canvas id="posterCanvas"></canvas><br><br>
-    <button class="btn gold" onclick="downloadPoster()">⬇ ポスターを保存</button>
-    <button class="btn outline" onclick="closePoster()">閉じる</button>
-  </div>
-</div>
-
-<div id="toast" class="toast hidden"></div>
-
-<!-- ================= フッター（著作権表記） ================= -->
 <footer>
-  本ツール（カラー選定エディター）は藤井寺まちリンク協議会のために制作されたものであり、<br>
-  無断での複製・改変・他団体への提供・他地域のタータン制作への転用を固く禁じます。<br>
-  © 2025 藤井寺まちリンク協議会　All Rights Reserved.
+  <div class="org-name">藤井寺まちリンク協議会</div>
+  公式オリジナルタータン　応募企画
+  <div class="legal">
+    © 2025 藤井寺まちリンク協議会　All Rights Reserved.<br>
+    本ツールで生成したデザイン・画像・テキストデータの無断転載および商用利用を固く禁じます。<br>
+    本ツール（エディター）自体のソースコードの複製・再配布・改変・再公開も禁止します。
+  </div>
 </footer>
 
+<div id="toast"></div>
+
 <script>
-/* ========================================================
-   公式137色データ（カテゴリ: R赤 B青 G緑 Y黄 K黒 W白 N灰 T茶 P紫 O橙）
-   ======================================================== */
+/* =========================================================
+   137色データ（Tartan Register 公式PDF Colour_shades.pdf 準拠）
+   採番：PDF記載の Colour code 列ごとに出現順で連番付与
+========================================================= */
 const COLORS = [
-// Red
-{n:"Red",h:"#C8102E",c:"R"},{n:"Bright Red",h:"#E2231A",c:"R"},{n:"Dark Red",h:"#8B0000",c:"R"},
-{n:"Old Red",h:"#A52A2A",c:"R"},{n:"Lovat Red",h:"#A63A3A",c:"R"},{n:"Weathered Red",h:"#B5574A",c:"R"},
-{n:"Madder Red",h:"#B22222",c:"R"},{n:"Rose Red",h:"#C21E56",c:"R"},{n:"Crimson",h:"#DC143C",c:"R"},
-{n:"Wine Red",h:"#722F37",c:"R"},{n:"Brick Red",h:"#9E3A26",c:"R"},{n:"Scarlet",h:"#FF2400",c:"R"},
-{n:"Cherry Red",h:"#D2042D",c:"R"},{n:"Blood Red",h:"#660000",c:"R"},{n:"Ruby Red",h:"#9B111E",c:"R"},
-{n:"Claret",h:"#7F1734",c:"R"},{n:"Signal Red",h:"#FF1E00",c:"R"},{n:"Tomato Red",h:"#FF6347",c:"R"},
-{n:"Coral Red",h:"#FF4040",c:"R"},{n:"Deep Red",h:"#850101",c:"R"},
-// Blue
-{n:"Blue",h:"#0047AB",c:"B"},{n:"Royal Blue",h:"#002366",c:"B"},{n:"Navy Blue",h:"#000080",c:"B"},
-{n:"Sky Blue",h:"#87CEEB",c:"B"},{n:"Lovat Blue",h:"#4A5D73",c:"B"},{n:"Dark Blue",h:"#00008B",c:"B"},
-{n:"Light Blue",h:"#ADD8E6",c:"B"},{n:"Steel Blue",h:"#4682B4",c:"B"},{n:"Air Force Blue",h:"#5D8AA8",c:"B"},
-{n:"Denim Blue",h:"#1560BD",c:"B"},{n:"Azure",h:"#007FFF",c:"B"},{n:"Cobalt Blue",h:"#1E3F8B",c:"B"},
-{n:"Teal Blue",h:"#367588",c:"B"},{n:"Baby Blue",h:"#89CFF0",c:"B"},{n:"Powder Blue",h:"#B0E0E6",c:"B"},
-{n:"Midnight Blue",h:"#191970",c:"B"},{n:"Prussian Blue",h:"#003153",c:"B"},{n:"Cornflower Blue",h:"#6495ED",c:"B"},
-{n:"Peacock Blue",h:"#005F69",c:"B"},{n:"Ice Blue",h:"#D6ECF0",c:"B"},
-// Green
-{n:"Green",h:"#228B22",c:"G"},{n:"Bottle Green",h:"#0A4D3C",c:"G"},{n:"Forest Green",h:"#1B4D3E",c:"G"},
-{n:"Hunting Green",h:"#355E3B",c:"G"},{n:"Lovat Green",h:"#5A6B50",c:"G"},{n:"Dark Green",h:"#013220",c:"G"},
-{n:"Light Green",h:"#90EE90",c:"G"},{n:"Emerald Green",h:"#50C878",c:"G"},{n:"Moss Green",h:"#8A9A5B",c:"G"},
-{n:"Olive Green",h:"#708238",c:"G"},{n:"Pine Green",h:"#01796F",c:"G"},{n:"Sea Green",h:"#2E8B57",c:"G"},
-{n:"Grass Green",h:"#7CFC00",c:"G"},{n:"Jade Green",h:"#00A86B",c:"G"},{n:"Lime Green",h:"#32CD32",c:"G"},
-{n:"Mint Green",h:"#98FF98",c:"G"},{n:"Racing Green",h:"#004225",c:"G"},{n:"Rifle Green",h:"#414833",c:"G"},
-{n:"Sage Green",h:"#9CAF88",c:"G"},{n:"Spruce Green",h:"#0A3B2E",c:"G"},
-// Yellow
-{n:"Yellow",h:"#FFD700",c:"Y"},{n:"Gold",h:"#D4AF37",c:"Y"},{n:"Old Gold",h:"#CFB53B",c:"Y"},
-{n:"Straw",h:"#E4D96F",c:"Y"},{n:"Lemon Yellow",h:"#FFF44F",c:"Y"},{n:"Mustard",h:"#FFDB58",c:"Y"},
-{n:"Amber",h:"#FFBF00",c:"Y"},{n:"Primrose",h:"#F6E27A",c:"Y"},{n:"Buttercup",h:"#F3D250",c:"Y"},
-{n:"Canary Yellow",h:"#FFEF00",c:"Y"},{n:"Corn Yellow",h:"#FBEC5D",c:"Y"},{n:"Honey Gold",h:"#E8A33D",c:"Y"},
-// Black
-{n:"Black",h:"#000000",c:"K"},{n:"Jet Black",h:"#0A0A0A",c:"K"},{n:"Charcoal Black",h:"#1C1C1C",c:"K"},
-{n:"Soft Black",h:"#121212",c:"K"},{n:"Raven Black",h:"#050505",c:"K"},{n:"Onyx Black",h:"#0F0F0F",c:"K"},
-{n:"Coal Black",h:"#151515",c:"K"},{n:"Ink Black",h:"#0D0D0D",c:"K"},
-// White
-{n:"White",h:"#FFFFFF",c:"W"},{n:"Off White",h:"#F8F8F0",c:"W"},{n:"Ivory White",h:"#FFFFF0",c:"W"},
-{n:"Cream White",h:"#FFFDD0",c:"W"},{n:"Snow White",h:"#FFFAFA",c:"W"},{n:"Natural White",h:"#F5F5DC",c:"W"},
-{n:"Pearl White",h:"#F0EAD6",c:"W"},{n:"Antique White",h:"#FAEBD7",c:"W"},
-// Grey
-{n:"Grey",h:"#808080",c:"N"},{n:"Light Grey",h:"#D3D3D3",c:"N"},{n:"Dark Grey",h:"#14283C",c:"N"},
-{n:"Lovat Grey",h:"#6E7B6E",c:"N"},{n:"Steel Grey",h:"#71797E",c:"N"},{n:"Silver Grey",h:"#C0C0C0",c:"N"},
-{n:"Slate Grey",h:"#708090",c:"N"},{n:"Ash Grey",h:"#B2BEB5",c:"N"},{n:"Smoke Grey",h:"#738276",c:"N"},
-{n:"Stone Grey",h:"#928E85",c:"N"},{n:"Dove Grey",h:"#6D6C6C",c:"N"},{n:"Granite Grey",h:"#676767",c:"N"},
-{n:"Pewter Grey",h:"#899499",c:"N"},{n:"Mist Grey",h:"#C4C9C9",c:"N"},{n:"Fog Grey",h:"#D7DBDD",c:"N"},
-// Brown
-{n:"Brown",h:"#654321",c:"T"},{n:"Dark Brown",h:"#3B2412",c:"T"},{n:"Light Brown",h:"#AD8260",c:"T"},
-{n:"Camel Brown",h:"#C19A6B",c:"T"},{n:"Fawn Brown",h:"#E5AA70",c:"T"},{n:"Chestnut Brown",h:"#954535",c:"T"},
-{n:"Chocolate Brown",h:"#3F2204",c:"T"},{n:"Tan Brown",h:"#D2B48C",c:"T"},{n:"Rust Brown",h:"#8B4513",c:"T"},
-{n:"Walnut Brown",h:"#5C4033",c:"T"},{n:"Sienna Brown",h:"#A0522D",c:"T"},{n:"Umber Brown",h:"#635147",c:"T"},
-{n:"Coffee Brown",h:"#6F4E37",c:"T"},{n:"Mahogany Brown",h:"#4E2728",c:"T"},{n:"Bronze Brown",h:"#7C5B34",c:"T"},
-// Purple
-{n:"Purple",h:"#6A0DAD",c:"P"},{n:"Dark Purple",h:"#301934",c:"P"},{n:"Light Purple",h:"#B19CD9",c:"P"},
-{n:"Lilac",h:"#C8A2C8",c:"P"},{n:"Heather Purple",h:"#9B7EBD",c:"P"},{n:"Violet",h:"#8F00FF",c:"P"},
-{n:"Plum Purple",h:"#8E4585",c:"P"},{n:"Mauve",h:"#E0B0FF",c:"P"},{n:"Amethyst Purple",h:"#9966CC",c:"P"},
-{n:"Grape Purple",h:"#6F2DA8",c:"P"},
-// Orange
-{n:"Orange",h:"#FFA500",c:"O"},{n:"Dark Orange",h:"#D2691E",c:"O"},{n:"Light Orange",h:"#FFB347",c:"O"},
-{n:"Burnt Orange",h:"#CC5500",c:"O"},{n:"Rust Orange",h:"#B7410E",c:"O"},{n:"Tangerine",h:"#F28500",c:"O"},
-{n:"Amber Orange",h:"#FF7E00",c:"O"},{n:"Copper Orange",h:"#B87333",c:"O"},{n:"Terracotta",h:"#E2725B",c:"O"}
+  // --- Red family ---
+  {id:'LR1',name:'Light Red',hex:'#F4CCCC',family:'red'},
+  {id:'LR2',name:'Light Red',hex:'#E87878',family:'red'},
+  {id:'LR3',name:'Light Red',hex:'#F04DB0',family:'red'},
+  {id:'R1',name:'Red',hex:'#A00048',family:'red'},
+  {id:'R2',name:'Red',hex:'#FA4B00',family:'red'},
+  {id:'R3',name:'Red',hex:'#FF0000',family:'red'},
+  {id:'R4',name:'Red',hex:'#DC0000',family:'red'},
+  {id:'R5',name:'Red',hex:'#C80000',family:'red'},
+  {id:'R6',name:'Red',hex:'#C82828',family:'red'},
+  {id:'R7',name:'Red',hex:'#C8002C',family:'red'},
+  {id:'R8',name:'Red',hex:'#B03000',family:'red'},
+  {id:'DR1',name:'Dark Red',hex:'#A00000',family:'red'},
+  {id:'DR2',name:'Dark Red',hex:'#960000',family:'red'},
+  {id:'DR3',name:'Dark Red',hex:'#960028',family:'red'},
+  {id:'DR4',name:'Dark Red',hex:'#880000',family:'red'},
+  {id:'DR5',name:'Dark Red',hex:'#800028',family:'red'},
+  {id:'DR6',name:'Dark Red',hex:'#781C38',family:'red'},
+  {id:'DR7',name:'Dark Red',hex:'#4C0000',family:'red'},
+  {id:'DR8',name:'Dark Red',hex:'#901C38',family:'red'},
+  {id:'DR9',name:'Dark Red',hex:'#680028',family:'red'},
+
+  // --- Orange family ---
+  {id:'O1',name:'Orange',hex:'#EC8048',family:'orange'},
+  {id:'O2',name:'Orange',hex:'#E86000',family:'orange'},
+  {id:'O3',name:'Orange',hex:'#FF5000',family:'orange'},
+  {id:'O4',name:'Orange',hex:'#DC943C',family:'orange'},
+  {id:'O5',name:'Orange',hex:'#D87C00',family:'orange'},
+  {id:'DO1',name:'Dark Orange',hex:'#BE7832',family:'orange'},
+
+  // --- Yellow family ---
+  {id:'LY1',name:'Light Yellow',hex:'#F9F5C8',family:'yellow'},
+  {id:'LY2',name:'Light Yellow',hex:'#F8E38C',family:'yellow'},
+  {id:'Y1',name:'Yellow',hex:'#FFFF00',family:'yellow'},
+  {id:'Y2',name:'Yellow',hex:'#FFE600',family:'yellow'},
+  {id:'Y3',name:'Yellow',hex:'#FFD700',family:'yellow'},
+  {id:'Y4',name:'Yellow',hex:'#FCCC00',family:'yellow'},
+  {id:'Y5',name:'Yellow',hex:'#E0A126',family:'yellow'},
+  {id:'Y6',name:'Yellow',hex:'#E8C000',family:'yellow'},
+  {id:'Y7',name:'Yellow',hex:'#D8B000',family:'yellow'},
+  {id:'DY1',name:'Dark Yellow',hex:'#BC8C00',family:'yellow'},
+  {id:'DY2',name:'Dark Yellow',hex:'#C89800',family:'yellow'},
+  {id:'DY3',name:'Dark Yellow',hex:'#C88C00',family:'yellow'},
+
+  // --- Green family ---
+  {id:'LG1',name:'Light Green',hex:'#789484',family:'green'},
+  {id:'LG2',name:'Light Green',hex:'#C4BC68',family:'green'},
+  {id:'LG3',name:'Light Green',hex:'#9C9C00',family:'green'},
+  {id:'LG4',name:'Light Green',hex:'#ACD74A',family:'green'},
+  {id:'LG5',name:'Light Green',hex:'#86C67C',family:'green'},
+  {id:'LG6',name:'Light Green',hex:'#649848',family:'green'},
+  {id:'G1',name:'Green',hex:'#008B00',family:'green'},
+  {id:'G2',name:'Green',hex:'#408060',family:'green'},
+  {id:'G3',name:'Green',hex:'#289C18',family:'green'},
+  {id:'G4',name:'Green',hex:'#006400',family:'green'},
+  {id:'G5',name:'Green',hex:'#007800',family:'green'},
+  {id:'G6',name:'Green',hex:'#3F5642',family:'green'},
+  {id:'G7',name:'Green',hex:'#767E52',family:'green'},
+  {id:'G8',name:'Green',hex:'#5C6428',family:'green'},
+  {id:'G9',name:'Green',hex:'#00643C',family:'green'},
+  {id:'G10',name:'Green',hex:'#146400',family:'green'},
+  {id:'G11',name:'Green',hex:'#006818',family:'green'},
+  {id:'G12',name:'Green',hex:'#004C00',family:'green'},
+  {id:'G13',name:'Green',hex:'#285800',family:'green'},
+  {id:'G14',name:'Green',hex:'#005020',family:'green'},
+  {id:'G15',name:'Green',hex:'#005448',family:'green'},
+  {id:'DG1',name:'Dark Green',hex:'#003C14',family:'green'},
+  {id:'DG2',name:'Dark Green',hex:'#003820',family:'green'},
+  {id:'DG3',name:'Dark Green',hex:'#004028',family:'green'},
+  {id:'DG4',name:'Dark Green',hex:'#002814',family:'green'},
+
+  // --- Blue family ---
+  {id:'B1',name:'Blue',hex:'#BCC3D2',family:'blue'},
+  {id:'LB1',name:'Light Blue',hex:'#98C8E8',family:'blue'},
+  {id:'LB2',name:'Light Blue',hex:'#82CFFD',family:'blue'},
+  {id:'LB3',name:'Light Blue',hex:'#00FCFC',family:'blue'},
+  {id:'B2',name:'Blue',hex:'#048888',family:'blue'},
+  {id:'B3',name:'Blue',hex:'#3C82AF',family:'blue'},
+  {id:'B4',name:'Blue',hex:'#5C8CA8',family:'blue'},
+  {id:'B5',name:'Blue',hex:'#2888C4',family:'blue'},
+  {id:'B6',name:'Blue',hex:'#48A4C0',family:'blue'},
+  {id:'B7',name:'Blue',hex:'#2474E8',family:'blue'},
+  {id:'B8',name:'Blue',hex:'#0596FA',family:'blue'},
+  {id:'B9',name:'Blue',hex:'#0000FF',family:'blue'},
+  {id:'B10',name:'Blue',hex:'#3850C8',family:'blue'},
+  {id:'B11',name:'Blue',hex:'#788CB4',family:'blue'},
+  {id:'B12',name:'Blue',hex:'#5F749C',family:'blue'},
+  {id:'B13',name:'Blue',hex:'#1870A4',family:'blue'},
+  {id:'B14',name:'Blue',hex:'#1474B4',family:'blue'},
+  {id:'B15',name:'Blue',hex:'#0000CD',family:'blue'},
+  {id:'B16',name:'Blue',hex:'#2C4084',family:'blue'},
+  {id:'DB1',name:'Dark Blue',hex:'#055183',family:'blue'},
+  {id:'DB2',name:'Dark Blue',hex:'#003C64',family:'blue'},
+  {id:'DB3',name:'Dark Blue',hex:'#00008C',family:'blue'},
+  {id:'DB4',name:'Dark Blue',hex:'#2C2C80',family:'blue'},
+  {id:'DB5',name:'Dark Blue',hex:'#1C0070',family:'blue'},
+  {id:'DB6',name:'Dark Blue',hex:'#000064',family:'blue'},
+  {id:'DB7',name:'Dark Blue',hex:'#202060',family:'blue'},
+  {id:'DB8',name:'Dark Blue',hex:'#000048',family:'blue'},
+  {id:'DB9',name:'Dark Blue',hex:'#141E46',family:'blue'},
+  {id:'DB10',name:'Dark Blue',hex:'#1C1C50',family:'blue'},
+
+  // --- Purple family ---
+  {id:'LP1',name:'Light Purple',hex:'#A8ACE8',family:'purple'},
+  {id:'LP2',name:'Light Purple',hex:'#C49CD8',family:'purple'},
+  {id:'LP3',name:'Light Purple',hex:'#806D84',family:'purple'},
+  {id:'LP4',name:'Light Purple',hex:'#9C68A4',family:'purple'},
+  {id:'P1',name:'Purple',hex:'#9058D8',family:'purple'},
+  {id:'P2',name:'Purple',hex:'#AA00FF',family:'purple'},
+  {id:'P3',name:'Purple',hex:'#B458AC',family:'purple'},
+  {id:'P4',name:'Purple',hex:'#6C0070',family:'purple'},
+  {id:'P5',name:'Purple',hex:'#5A008C',family:'purple'},
+  {id:'P6',name:'Purple',hex:'#64008C',family:'purple'},
+  {id:'P7',name:'Purple',hex:'#780078',family:'purple'},
+  {id:'DP1',name:'Dark Purple',hex:'#440044',family:'purple'},
+  {id:'DP2',name:'Dark Purple',hex:'#1E0948',family:'purple'},
+
+  // --- Neutral family (White/Grey/Black) ---
+  {id:'W1',name:'White',hex:'#E5DDD1',family:'neutral'},
+  {id:'W2',name:'White',hex:'#E8CCB8',family:'neutral'},
+  {id:'W3',name:'White',hex:'#F0E0C8',family:'neutral'},
+  {id:'W4',name:'White',hex:'#FCFCFC',family:'neutral'},
+  {id:'W5',name:'White',hex:'#FFFFFF',family:'neutral'},
+  {id:'W6',name:'White',hex:'#F8F8F8',family:'neutral'},
+  {id:'LN1',name:'Light Grey',hex:'#E0E0E0',family:'neutral'},
+  {id:'N1',name:'Grey',hex:'#C8C8C8',family:'neutral'},
+  {id:'N2',name:'Grey',hex:'#C0C0C0',family:'neutral'},
+  {id:'N3',name:'Grey',hex:'#B0B0B0',family:'neutral'},
+  {id:'N4',name:'Grey',hex:'#A0A0A0',family:'neutral'},
+  {id:'N5',name:'Grey',hex:'#808080',family:'neutral'},
+  {id:'N6',name:'Grey',hex:'#888888',family:'neutral'},
+  {id:'N7',name:'Grey',hex:'#646464',family:'neutral'},
+  {id:'N8',name:'Dark Grey',hex:'#505050',family:'neutral'},
+  {id:'DN1',name:'Dark Grey',hex:'#555A64',family:'neutral'},
+  {id:'DN2',name:'Dark Grey',hex:'#1C1714',family:'neutral'},
+  {id:'DN3',name:'Dark Grey',hex:'#14283C',family:'neutral'},
+  {id:'DN4',name:'Dark Grey',hex:'#1C1C1C',family:'neutral'},
+  {id:'K1',name:'Black',hex:'#101010',family:'neutral'},
+  {id:'K2',name:'Black',hex:'#000000',family:'neutral'},
+
+  // --- Brown family ---
+  {id:'LT1',name:'Light Brown',hex:'#A08858',family:'brown'},
+  {id:'LT2',name:'Light Brown',hex:'#8C7038',family:'brown'},
+  {id:'LT3',name:'Light Brown',hex:'#A07C58',family:'brown'},
+  {id:'LT4',name:'Light Brown',hex:'#B07430',family:'brown'},
+  {id:'T1',name:'Brown',hex:'#98481C',family:'brown'},
+  {id:'T2',name:'Brown',hex:'#603800',family:'brown'},
+  {id:'T3',name:'Brown',hex:'#604000',family:'brown'},
+  {id:'T4',name:'Brown',hex:'#503C14',family:'brown'},
+  {id:'DT1',name:'Dark Brown',hex:'#4C3428',family:'brown'},
+  {id:'DT2',name:'Dark Brown',hex:'#441800',family:'brown'},
+  {id:'DT3',name:'Dark Brown',hex:'#230D00',family:'brown'}
+];
+// 合計137色（公式PDF照合済み）
+
+const FAMILIES = [
+  {key:'all', label:'すべて'},
+  {key:'red', label:'赤系'},
+  {key:'orange', label:'橙系'},
+  {key:'yellow', label:'黄系'},
+  {key:'green', label:'緑系'},
+  {key:'blue', label:'青系'},
+  {key:'purple', label:'紫系'},
+  {key:'neutral', label:'白・灰・黒'},
+  {key:'brown', label:'茶系'}
 ];
 
-// コード番号を自動付与（例: R1, R2, B1...）
-(function(){
-  const counters = {};
-  COLORS.forEach(col=>{
-    counters[col.c] = (counters[col.c]||0) + 1;
-    col.code = col.c + counters[col.c];
+/* =========================================================
+   状態
+========================================================= */
+const MAX_COLORS = 8;
+const MIN_COLORS = 2;
+let currentFamily = 'all';
+let selectedColors = []; // {id,name,hex,family,threads,reason}
+let repeatCount = 6;
+
+/* =========================================================
+   初期化
+========================================================= */
+function init(){
+  renderCategoryFilter();
+  renderPalette();
+  renderSelectedList();
+
+  document.getElementById('repeatCount').addEventListener('input', e=>{
+    let v = parseInt(e.target.value,10);
+    if(isNaN(v) || v<2) v=2;
+    if(v>10) v=10;
+    repeatCount = v;
+    updatePreview();
   });
-})();
 
-const CATEGORIES = [
-  {c:'ALL', l:'すべて'},{c:'R', l:'赤'},{c:'B', l:'青'},{c:'G', l:'緑'},
-  {c:'Y', l:'黄'},{c:'K', l:'黒'},{c:'W', l:'白'},{c:'N', l:'グレー'},
-  {c:'T', l:'茶'},{c:'P', l:'紫'},{c:'O', l:'橙'}
-];
+  document.getElementById('downloadImageBtn').addEventListener('click', onDownloadImage);
+  document.getElementById('createPosterBtn').addEventListener('click', onCreatePoster);
+  document.getElementById('copyDataBtn').addEventListener('click', onCopyData);
 
-let currentFilter = 'ALL';
-let selected = []; // {n,h,c,code,threadCount,reason}
-let previewTimer = null;
+  updatePreview();
+}
 
-/* ================= カテゴリフィ
+/* =========================================================
+   カテゴリフィルター
+========================================================= */
+function renderCategoryFilter(){
+  const wrap = document.getElementById('categoryFilter');
+  wrap.innerHTML = '';
+  FAMILIES.forEach(f=>{
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn' + (f.key===currentFamily ? ' active':'');
+    btn.textContent = f.label;
+    btn.addEventListener('click', ()=>{
+      currentFamily = f.key;
+      renderCategoryFilter();
+      renderPalette();
+    });
+    wrap.appendChild(btn);
+  });
+}
+
+/* =========================================================
+   パレット描画
+========================================================= */
+function renderPalette(){
+  const wrap = document.getElementById('paletteContainer');
+  wrap.innerHTML = '';
+  const list = currentFamily==='all' ? COLORS : COLORS.filter(c=>c.family===currentFamily);
+
+  list.forEach(c=>{
+    const sw = document.createElement('div');
+    sw.className = 'swatch' + (isSelected(c.id) ? ' selected':'');
+    sw.style.background = c.hex;
+    sw.title = `${c.id} ${c.name} ${c.hex}`;
+
+    const lbl = document.createElement('div');
+    lbl.className = 'lbl';
+    lbl.textContent = c.id;
+    sw.appendChild(lbl);
+
+    if(isSelected(c.id)){
+      const chk = document.createElement('div');
+      chk.className = 'check';
+      chk.textContent = '✓';
+      sw.appendChild(chk);
+    }
+
+    sw.addEventListener('click', ()=>toggleColor(c));
+    wrap.appendChild(sw);
+  });
+}
+
+function isSelected(id){
+  return selectedColors.some(c=>c.id===id);
+}
+
+function toggleColor(c){
+  const idx = selectedColors.findIndex(x=>x.id===c.id);
+  if(idx>=0){
+    selectedColors.splice(idx,1);
+  } else {
+    if(selectedColors.length >= MAX_COLORS){
+      showToast(`色は最大${MAX_COLORS}色まで選択できます。`);
+      return;
+    }
+    selectedColors.push({...c, threads:6, reason:''});
+  }
+  renderPalette();
+  renderSelectedList();
+}
+
+/* =========================================================
+   選択リスト描画
+========================================================= */
+function renderSelectedList(){
+  const wrap = document.getElementById('selectedList');
+  wrap.innerHTML = '';
+  document.getElementById('selectedCount').textContent =
+    `選択中：${selectedColors.length} / ${MAX_COLORS}色（最低${MIN_COLORS}色必要）`;
+
+  selectedColors.forEach((c, i)=>{
+    const row = document.createElement('div');
+    row.className = 'selected-row';
+
+    const sw = document.createElement('div');
+    sw.className = 'sw';
+    sw.style.background = c.hex;
+    row.appendChild(sw);
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.innerHTML = `${c.id}<br>${c.hex}`;
+    row.appendChild(meta);
+
+    const reasonInput = document.createElement('input');
+    reasonInput.type = 'text';
+    reasonInput.maxLength = 20;
+    reasonInput.placeholder = '理由を入力（20文字まで）';
+    reasonInput.value = c.reason;
+    reasonInput.addEventListener('input', e=>{
+      c.reason = e.target.value;
+    });
+    row.appendChild(reasonInput);
+
+    const threadInput = document.createElement('input');
+    threadInput.type = 'number';
+    threadInput.min = 2;
+    threadInput.step = 2;
+    threadInput.value = c.threads;
+    threadInput.addEventListener('change', e=>{
+      let v = parseInt(e.target.value,10);
+      if(isNaN(v) || v<2) v=2;
+      if(v % 2 !== 0){
+        v = v+1;
+        showToast('スレッド数は2の倍数に自動調整しました。');
+      }
+      c.threads = v;
+      e.target.value = v;
+      updatePreview();
+    });
+    row.appendChild(threadInput);
+
+    const btns = document.createElement('div');
+    btns.className = 'btns';
+
+    const upBtn = document.createElement('button');
+    upBtn.textContent='▲';
+    upBtn.addEventListener('click', ()=>moveColor(i,-1));
+    btns.appendChild(upBtn);
+
+    const downBtn = document.createElement('button');
+    downBtn.textContent='▼';
+    downBtn.addEventListener('click', ()=>moveColor(i,1));
+    btns.appendChild(downBtn);
+
+    const delBtn = document.createElement('button');
+    delBtn.textContent='✕';
+    delBtn.addEventListener('click', ()=>{
+      selectedColors.splice(i,1);
+      renderPalette();
+      renderSelectedList();
+    });
+    btns.appendChild(delBtn);
+
+    row.appendChild(btns);
+    wrap.appendChild(row);
+  });
+
+  updatePreview();
+}
+
+function moveColor(index, dir){
+  const newIndex = index + dir;
+  if(newIndex < 0 || newIndex >= selectedColors.length) return;
+  const tmp = selectedColors[index];
+  selectedColors[index] = selectedColors[newIndex];
+  selectedColors[newIndex] = tmp;
+  renderSelectedList();
+}
+
+/* =========================================================
+   タータン生成ロジック（真の2/2綾織り・左右対称）
+========================================================= */
+function buildSett(colors){
+  // 左右対称（ミラー）：c1,c2,...,cn-1,cn,cn-1,...,c2,c1
+  const seq = [...colors];
+  for(let i=colors.length-2; i>=0; i--) seq.push(colors[i]);
+  return seq;
+}
+
+function expandThreads(seq){
+  const arr = [];
+  seq.forEach(c=>{
+    for(let i=0;i<c.threads;i++) arr.push(c.hex);
+  });
+  return arr;
+}
+
+function drawTartan(ctx, size, threadArr, repeat){
+  const full = [];
+  for(let r=0;r<repeat;r++) full.push(...threadArr);
+  const n = full.length;
+  if(n===0) return;
+  const px = size / n;
+
+  for(let yi=0; yi<n; yi++){
+    for(let xi=0; xi<n; xi++){
+      // 2/2綾織り：斜め方向に経糸/緯糸が交互に現れる
+      const offset = ((xi - yi) % 4 + 4) % 4;
+      const color = offset < 2 ? full[xi] : full[yi];
+      ctx.fillStyle = color;
+      ctx.fillRect(
+        Math.floor(xi*px),
+        Math.floor(yi*px),
+        Math.ceil(px)+1,
+        Math.ceil(px)+1
+      );
+    }
+  }
+}
+
+function buildPatternCanvas(size, repeat){
+  if(selectedColors.length < MIN_COLORS) return null;
+  const seq = buildSett(selectedColors);
+  const threadArr = expandThreads(seq);
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  drawTartan(ctx, size, threadArr, repeat);
+  return canvas;
+}
+
+/* =========================================================
+   プレビュー更新（軽量：repeat=2固定で高速表示）
+========================================================= */
+function updatePreview(){
+  const canvas = document.getElementById('previewCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  if(selectedColors.length < MIN_COLORS){
+    ctx.fillStyle = '#eee';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = '#999';
+    ctx.font = '14px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`色を${MIN_COLORS}色以上選択してください`, canvas.width/2, canvas.height/2);
+    return;
+  }
+
+  const previewCanvas = buildPatternCanvas(canvas.width, 2);
+  if(previewCanvas) ctx.drawImage(previewCanvas, 0, 0);
+}
+
+/* =========================================================
+   バリデーション
+========================================================= */
+function validateForSubmission(){
+  const errEl = document.getElementById('formError');
+  errEl.textContent = '';
+
+  const orgName = document.getElementById('orgName').value.trim();
+  const concept = document.getElementById('concept').value.trim();
+
+  if(!orgName){
+    errEl.textContent = '「応募者名／団体名」を入力してください。';
+    return null;
+  }
+  if(!concept){
+    errEl.textContent = '「コンセプト・想い」を入力してください。';
+    return null;
+  }
+  if(selectedColors.length < MIN_COLORS){
+    errEl.textContent = `色を${MIN_COLORS}色以上選択してください。`;
+    return null;
+  }
+  return {orgName, concept};
+}
+
+/* =========================================================
+   高画質画像ダウンロード
+========================================================= */
+function onDownloadImage(){
+  if(selectedColors.length < MIN_COLORS){
+    showToast(`色を${MIN_COLORS}色以上選択してください。`);
+    return;
+  }
+  const size = 1600;
+  const canvas = buildPatternCanvas(size, repeatCount);
+  if(!canvas) return;
+
+  const link = document.createElement('a');
+  link.download = 'tartan_pattern.jpg';
+  link.href = canvas.toDataURL('image/jpeg', 0.95);
+  link.click();
+
+  showToast('高画質画像を保存しました。');
+}
+
+/* =========================================================
+   提出用ポスター作成
+========================================================= */
+function onCreatePoster(){
+  const data = validateForSubmission();
+  if(!data) return;
+  const { orgName, concept } = data;
+
+  const patternSize = 760;
+  const patCanvas = buildPatternCanvas(patternSize, repeatCount);
+  if(!patCanvas) return;
+
+  const posterWidth = 900;
+  const margin = 50;
+
+  // --- コンセプト文折り返し ---
+  const tmpCtx = document.createElement('canvas').getContext('2d');
+  const conceptLines = wrapText(tmpCtx, concept, posterWidth - margin * 2, 15);
+
+  // --- 色一覧：2列レイアウト計算 ---
+  const cols = 2;
+  const colGap = 26;
+  const colWidth = (posterWidth - margin * 2 - colGap) / cols;
+  const swSize = 78;
+  const rowHeight = 108; // スウォッチ＋理由(最大2行)＋コード行
+
+  const rows = Math.ceil(selectedColors.length / cols);
+  const colorListHeight = rows * rowHeight;
+
+  // --- 高さをカーソル方式で積み上げ計算 ---
+  let cursorY = 0;
+  cursorY += 60;                       // 上部名前欄
+  cursorY += patternSize + 40;         // パターン画像
+  cursorY += 30;                       // コンセプト見出し
+  cursorY += conceptLines.length * 22 + 24; // コンセプト本文
+  cursorY += 46;                       // 色一覧見出し
+  cursorY += colorListHeight;          // 色一覧本体
+  cursorY += 40;                       // 区切り線までの余白
+  cursorY += 90;                       // 下部協議会名エリア
+
+  const posterHeight = cursorY + margin * 2;
+
+  const poster = document.createElement('canvas');
+  poster.width = posterWidth;
+  poster.height = posterHeight;
+  const ctx = poster.getContext('2d');
+
+  // 背景
+  ctx.fillStyle = '#fdfcf8';
+  ctx.fillRect(0, 0, posterWidth, posterHeight);
+
+  // 外枠装飾
+  ctx.strokeStyle = '#c9a227';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(20, 20, posterWidth - 40, posterHeight - 40);
+  ctx.strokeStyle = '#0d1b3e';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(28, 28, posterWidth - 56, posterHeight - 56);
+
+  let y = margin + 10;
+
+  // 応募者名（右寄せ）
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#0d1b3e';
+  ctx.font = 'bold 30px serif';
+  ctx.fillText(orgName, posterWidth - margin, y + 20);
+  y += 60;
+
+  // パターン画像（中央）
+  const patX = (posterWidth - patternSize) / 2;
+  ctx.drawImage(patCanvas, patX, y, patternSize, patternSize);
+  ctx.strokeStyle = '#ddd';
+  ctx.strokeRect(patX, y, patternSize, patternSize);
+  y += patternSize + 40;
+
+  // コンセプト見出し
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#0d1b3e';
+  ctx.font = 'bold 16px serif';
+  ctx.fillText('コンセプト・想い', margin, y);
+  y += 10;
+  ctx.strokeStyle = '#c9a227';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(margin, y + 6);
+  ctx.lineTo(posterWidth - margin, y + 6);
+  ctx.stroke();
+  y += 26;
+
+  ctx.font = '15px serif';
+  ctx.fillStyle = '#333';
+  conceptLines.forEach(line => {
+    ctx.fillText(line, margin, y);
+    y += 22;
+  });
+  y += 22;
+
+  // 使用色一覧 見出し
+  ctx.font = 'bold 16px serif';
+  ctx.fillStyle = '#0d1b3e';
+  ctx.fillText('使用色一覧', margin, y);
+  y += 10;
+  ctx.beginPath();
+  ctx.moveTo(margin, y + 6);
+  ctx.lineTo(posterWidth - margin, y + 6);
+  ctx.stroke();
+  y += 30;
+
+  // --- 色一覧 2列描画 ---
+  const listStartY = y;
+  const textAreaWidth = colWidth - swSize - 16;
+
+  selectedColors.forEach((c, i) => {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const bx = margin + col * (colWidth + colGap);
+    const by = listStartY + row * rowHeight;
+
+    // スウォッチ
+    ctx.fillStyle = c.hex;
+    ctx.fillRect(bx, by, swSize, swSize);
+    ctx.strokeStyle = '#ccc';
+    ctx.strokeRect(bx, by, swSize, swSize);
+
+    const textX = bx + swSize + 16;
+
+    // 理由（強調）
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = '17px serif';
+    const reasonLines = wrapText(ctx, `理由：${c.reason || '（未記入）'}`, textAreaWidth, 17).slice(0, 2);
+    reasonLines.forEach((line, li) => {
+      ctx.fillText(line, textX, by + 24 + li * 21);
+    });
+
+    // コード・スレッド数（控えめ）
+    ctx.fillStyle = '#999';
+    ctx.font = '10px serif';
+    ctx.fillText(`${c.id} ${c.name} ${c.hex} ${c.threads}本`, textX, by + swSize + 2);
+  });
+
+  y = listStartY + colorListHeight + 20;
+
+  // 区切り線
+  ctx.strokeStyle = '#c9a227';
+  ctx.beginPath();
+  ctx.moveTo(margin, y);
+  ctx.lineTo(posterWidth - margin, y);
+  ctx.stroke();
+  y += 60;
+
+  // 下部：協議会名
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#0d1b3e';
+  ctx.font = '13px serif';
+  ctx.fillText('藤井寺まちリンク協議会', posterWidth / 2, y);
+
+  // --- プレビュー表示 ---
+  const preview = document.getElementById('posterPreview');
+  preview.src = poster.toDataURL('image/jpeg', 0.95);
+  preview.style.display = 'block';
+  document.getElementById('posterDownloadRow').style.display = 'flex';
+
+  document.getElementById('downloadPosterBtn').onclick = () => {
+    const link = document.createElement('a');
+    link.download = 'tartan_submission.jpg';
+    link.href = poster.toDataURL('image/jpeg', 0.95);
+    link.click();
+  };
+
+  // --- テキストデータ ---
+  generateSubmissionText(orgName, concept);
+
+  showToast('提出用データを作成しました。');
+}
+
+function wrapText(ctx, text, maxWidth, fontSize) {
+  ctx.font = fontSize + 'px serif';
+  const lines = [];
+  let line = '';
+  for (const ch of text) {
+    const test = line + ch;
+    if (ctx.measureText(test).width > maxWidth && line !== '') {
+      lines.push(line);
+      line = ch;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines.length ? lines : [''];
+}
+
+/* =========================================================
+   提出用テキストデータ
+========================================================= */
+function generateSubmissionText(orgName, concept) {
+  let text = '';
+  text += `【応募者名／団体名】\n${orgName}\n\n`;
+  text += `【コンセプト・想い】\n${concept}\n\n`;
+  text += `【使用色一覧】\n`;
+  selectedColors.forEach(c => {
+    text += `${c.id} ${c.name} ${c.hex} 糸数:${c.threads}本 理由:${c.reason || '（未記入）'}\n`;
+  });
+  document.getElementById('submissionData').value = text;
+}
+
+function onCopyData() {
+  const area = document.getElementById('submissionData');
+  if (!area.value) {
+    showToast('先に「提出用データ作成」を押してください。');
+    return;
+  }
+  area.select();
+  document.execC
