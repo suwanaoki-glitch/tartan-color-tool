@@ -10,34 +10,35 @@
     font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
     background: #f4f4f4;
     margin: 0;
-    padding: 20px;
+    padding: 16px;
     color: #222;
   }
   .container { max-width: 1400px; margin: 0 auto; }
 
   .header-row {
     display:flex; justify-content:space-between; align-items:center;
-    flex-wrap:wrap; gap:16px; margin-bottom:20px;
+    flex-wrap:wrap; gap:16px; margin-bottom:14px;
   }
   .header-left { flex:1; min-width:280px; }
-  .header-left h1 { margin:0 0 4px 0; text-align:left; font-size:24px;}
-  .header-left .sub-note { text-align:left; margin:0; color:#666; font-size:13px;}
+  .header-left h1 { margin:0 0 4px 0; text-align:left; font-size:22px;}
+  .header-left .sub-note { text-align:left; margin:0; color:#666; font-size:12px;}
   .header-right {
     display:flex; flex-direction:column; align-items:flex-end; gap:4px;
   }
-  .org-label { font-size:12px; color:#888; }
+  .org-label { font-size:11px; color:#888; }
   .header-right input {
-    padding:9px 12px; font-size:14px; border-radius:6px; border:1px solid #ccc;
+    padding:8px 12px; font-size:13px; border-radius:6px; border:1px solid #ccc;
     width:260px; max-width:60vw; text-align:right;
   }
 
+  /* ▼ カテゴリボタンを左寄せに変更して行数を圧縮 */
   .category-filters {
-    display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
-    max-width:820px; margin:0 auto 20px auto;
+    display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-start;
+    max-width:100%; margin:0 0 14px 0;
   }
   .category-filters button {
-    padding:6px 14px; border-radius:20px; border:1px solid #999;
-    background:#fff; cursor:pointer; font-size:13px;
+    padding:5px 12px; border-radius:20px; border:1px solid #999;
+    background:#fff; cursor:pointer; font-size:12px;
   }
   .category-filters button.active {
     background:#333; color:#fff; border-color:#333;
@@ -48,26 +49,26 @@
   }
   .palette-panel {
     flex: 3;
-    background:#fff; border-radius:10px; padding:15px;
+    background:#fff; border-radius:10px; padding:12px;
     box-shadow:0 1px 4px rgba(0,0,0,0.1);
   }
   .right-column {
     flex: 2;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
   }
   .panel-box {
-    background:#fff; border-radius:10px; padding:15px;
+    background:#fff; border-radius:10px; padding:12px;
     box-shadow:0 1px 4px rgba(0,0,0,0.1);
   }
-  .panel-box h2 { font-size:16px; margin-top:0;}
+  .panel-box h2 { font-size:15px; margin-top:0; margin-bottom:8px;}
 
   .color-grid {
     display:grid;
     grid-template-columns: repeat(auto-fill, minmax(95px,1fr));
     gap:8px;
-    max-height:75vh;
+    max-height:80vh;
     overflow-y:auto;
     padding-right:4px;
   }
@@ -87,9 +88,9 @@
   }
   .color-swatch .cname { font-weight:bold; }
 
-  .selected-list { max-height: 40vh; overflow-y:auto; margin-bottom:5px;}
+  .selected-list { max-height: 34vh; overflow-y:auto; margin-bottom:4px;}
   .selected-item {
-    background:#f7f7f7; border-radius:8px; padding:10px; margin-bottom:10px;
+    background:#f7f7f7; border-radius:8px; padding:8px; margin-bottom:8px;
   }
   .selected-item .row { display:flex; gap:8px; align-items:flex-start; }
   .swatch-mini {
@@ -111,12 +112,12 @@
   }
   .reorder-btns .remove-btn { color:#c00; }
 
-  .pattern-controls label { display:block; font-size:13px; margin-bottom:8px; }
+  .pattern-controls label { display:block; font-size:12px; margin-bottom:6px; }
   .pattern-controls input[type=number] { width:80px; padding:4px; margin-left:6px;}
   #generateBtn {
-    width:100%; padding:12px; font-size:15px; font-weight:bold;
+    width:100%; padding:10px; font-size:14px; font-weight:bold;
     background:#2c5f8a; color:#fff; border:none; border-radius:8px; cursor:pointer;
-    margin-top:8px;
+    margin-top:6px;
   }
   #generateBtn:hover { background:#1f466a; }
 
@@ -128,10 +129,10 @@
     border-radius:6px;
   }
   .export-buttons {
-    margin-top:12px; display:flex; flex-direction:column; gap:10px;
+    margin-top:10px; display:flex; flex-direction:column; gap:8px;
   }
   .export-buttons button {
-    padding:12px; font-size:14px; font-weight:bold;
+    padding:11px; font-size:13px; font-weight:bold;
     border:none; border-radius:8px; cursor:pointer; color:#fff; width:100%;
   }
   #downloadImgBtn { background:#3a7d44; }
@@ -141,7 +142,7 @@
 
   .submission-box textarea {
     width:100%; font-family: "Courier New", monospace; font-size:12px;
-    padding:10px; border-radius:6px; border:1px solid #ccc; resize:vertical;
+    padding:9px; border-radius:6px; border:1px solid #ccc; resize:vertical;
     background:#fafafa;
   }
   #genDataBtn { background:#555; }
@@ -149,7 +150,7 @@
   #copyDataBtn { background:#2c5f8a; }
   #copyDataBtn:hover { background:#1f466a; }
   .submission-box button {
-    width:100%; padding:10px; margin-top:8px; font-size:13px; font-weight:bold;
+    width:100%; padding:9px; margin-top:7px; font-size:13px; font-weight:bold;
     border:none; border-radius:6px; cursor:pointer; color:#fff;
   }
   .copy-note { font-size:11px; color:#2d8a3e; margin-top:4px; display:none; }
@@ -434,10 +435,7 @@ function isLight(hex){
   return (r*299+g*587+b*114)/1000 > 150;
 }
 
-/* ===================== コード自動生成（提出用） =====================
-   例: Dark Blue -> DB / Light Brown -> LB / Yellow -> Y / Green -> G
-   重複した場合は自動的に桁を増やして回避します
-*/
+/* ===================== コード自動生成（提出用） ===================== */
 function generateCodes(colors){
   const used = new Set();
   return colors.map(c=>{
@@ -722,13 +720,14 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight){
   ctx.fillText(line, x, curY);
 }
 
-/* ===================== 色数に応じたレイアウト計算 ===================== */
+/* ===================== 色数に応じたレイアウト計算 =====================
+   ▼ タータンのサイズはできるだけ一定に保ち、統一感を優先
+*/
 function getLayoutParams(count){
   let patternSize;
-  if(count <= 4) patternSize = 650;
-  else if(count <= 6) patternSize = 560;
-  else if(count <= 8) patternSize = 480;
-  else patternSize = 400;
+  if(count <= 8) patternSize = 680;
+  else if(count <= 10) patternSize = 620;
+  else patternSize = 560;
 
   const cols = count <= 4 ? 2 : 3;
   return { patternSize, cols };
@@ -783,20 +782,21 @@ function createPoster(){
   drawCorner(ctx, outerMargin+22, pH-outerMargin-22, false, true, GOLD);
   drawCorner(ctx, pW-outerMargin-22, pH-outerMargin-22, true, true, GOLD);
 
-  let y = innerMargin + 16;
+  let y = innerMargin + 10;
 
   ctx.textAlign = "center";
   ctx.fillStyle = GOLD;
-  ctx.font = "14px 'Hiragino Mincho ProN', serif";
+  ctx.font = "13px 'Hiragino Mincho ProN', serif";
   fillTextSpaced(ctx, "FUJIIDERA TARTAN DESIGN", pW/2, y, 6);
-  y += 46;
+  y += 38;
 
+  /* ▼ 応募者名を小さく（50px→30px）してタータンのスペースを確保 */
   ctx.fillStyle = INK;
-  ctx.font = "bold 50px 'Hiragino Mincho ProN', 'Yu Mincho', serif";
-  ctx.fillText(orgName, pW/2, y + 46);
-  y += 90;
+  ctx.font = "bold 30px 'Hiragino Mincho ProN', 'Yu Mincho', serif";
+  ctx.fillText(orgName, pW/2, y + 26);
+  y += 54;
 
-  const ribbonHeight = 12;
+  const ribbonHeight = 10;
   const segW = patternSize / count;
   selectedColors.forEach((c,i)=>{
     ctx.fillStyle = c.hex;
@@ -805,7 +805,7 @@ function createPoster(){
   ctx.strokeStyle = GOLD_SOFT;
   ctx.lineWidth = 1;
   ctx.strokeRect(pW/2 - patternSize/2, y, patternSize, ribbonHeight);
-  y += ribbonHeight + 26;
+  y += ribbonHeight + 22;
 
   ctx.strokeStyle = GOLD;
   ctx.lineWidth = 1.5;
@@ -823,9 +823,9 @@ function createPoster(){
   ctx.fillStyle = GOLD;
   ctx.fillRect(-5,-5,10,10);
   ctx.restore();
-  y += 34;
+  y += 28;
 
-  // --- タータン画像（中央配置・サイズ可変） ---
+  // --- タータン画像（中央配置・ほぼ固定サイズ） ---
   const patX = pW/2 - patternSize/2;
   ctx.save();
   ctx.shadowColor = "rgba(0,0,0,0.22)";
@@ -836,27 +836,27 @@ function createPoster(){
   ctx.strokeStyle = GOLD_SOFT;
   ctx.lineWidth = 2;
   ctx.strokeRect(patX, y, patternSize, patternSize);
-  y += patternSize + 36;
+  y += patternSize + 30;
 
   ctx.textAlign = "left";
   ctx.fillStyle = GOLD;
-  ctx.fillRect(innerMargin, y-4, 5, 24);
+  ctx.fillRect(innerMargin, y-4, 5, 22);
   ctx.fillStyle = INK;
-  ctx.font = "bold 22px 'Hiragino Mincho ProN', serif";
-  ctx.fillText("使 用 カ ラ ー", innerMargin + 18, y + 16);
-  y += 36;
+  ctx.font = "bold 20px 'Hiragino Mincho ProN', serif";
+  ctx.fillText("使 用 カ ラ ー", innerMargin + 18, y + 14);
+  y += 32;
 
   // --- カードエリア：残りスペースから動的に高さを計算 ---
-  const gap = 16;
+  const gap = 14;
   const patternAreaWidth = pW - innerMargin*2;
   const cardW = (patternAreaWidth - gap*(cols-1)) / cols;
   const rows = Math.ceil(count / cols);
 
-  const footerReserve = 130; // フッター分の余白
+  const footerReserve = 120;
   const bottomLimit = pH - outerMargin - footerReserve;
   const availableHeight = bottomLimit - y;
   let cardH = Math.floor((availableHeight - gap*(rows-1)) / rows);
-  cardH = Math.max(90, Math.min(150, cardH));
+  cardH = Math.max(78, Math.min(150, cardH));
 
   selectedColors.forEach((c,i)=>{
     const code = codes[i];
@@ -880,57 +880,57 @@ function createPoster(){
     ctx.fillStyle = GOLD;
     ctx.fillRect(cx, cy, 4, cardH);
 
-    const swSize = Math.min(38, cardH*0.3);
+    const swSize = Math.min(34, cardH*0.3);
     ctx.fillStyle = c.hex;
-    ctx.fillRect(cx+16, cy+14, swSize, swSize);
+    ctx.fillRect(cx+14, cy+12, swSize, swSize);
     ctx.strokeStyle = "#ccc";
     ctx.lineWidth = 1;
-    ctx.strokeRect(cx+16, cy+14, swSize, swSize);
+    ctx.strokeRect(cx+14, cy+12, swSize, swSize);
 
-    const badgeX = cx+16+swSize+30;
-    const badgeY = cy+14+swSize/2;
+    const badgeX = cx+14+swSize+28;
+    const badgeY = cy+12+swSize/2;
     ctx.beginPath();
-    ctx.arc(badgeX, badgeY, 15, 0, Math.PI*2);
+    ctx.arc(badgeX, badgeY, 14, 0, Math.PI*2);
     ctx.fillStyle = GOLD;
     ctx.fill();
     ctx.fillStyle = "#fff";
-    ctx.font = "bold 12px sans-serif";
+    ctx.font = "bold 11px sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(code, badgeX, badgeY+4);
 
     ctx.textAlign = "left";
     ctx.fillStyle = INK;
-    ctx.font = `bold ${cardH < 110 ? 15 : 17}px 'Hiragino Mincho ProN', serif`;
-    ctx.fillText(c.name, badgeX+22, badgeY+5);
+    ctx.font = `bold ${cardH < 100 ? 14 : 16}px 'Hiragino Mincho ProN', serif`;
+    ctx.fillText(c.name, badgeX+20, badgeY+5);
 
-    ctx.font = "11px sans-serif";
+    ctx.font = "10px sans-serif";
     ctx.fillStyle = SUBTEXT;
-    ctx.fillText(`${c.hex} ／ ${c.count}本`, cx+16, cy+14+swSize+16);
+    ctx.fillText(`${c.hex} ／ ${c.count}本`, cx+14, cy+12+swSize+14);
 
     ctx.strokeStyle = "#eee";
     ctx.beginPath();
-    ctx.moveTo(cx+16, cy+14+swSize+26);
-    ctx.lineTo(cx+cardW-14, cy+14+swSize+26);
+    ctx.moveTo(cx+14, cy+12+swSize+22);
+    ctx.lineTo(cx+cardW-12, cy+12+swSize+22);
     ctx.stroke();
 
     ctx.fillStyle = "#555";
-    ctx.font = `italic ${cardH < 110 ? 11 : 12}px 'Hiragino Mincho ProN', serif`;
+    ctx.font = `italic ${cardH < 100 ? 10 : 11}px 'Hiragino Mincho ProN', serif`;
     const reasonText = c.reason ? c.reason : "（理由未記入）";
-    wrapText(ctx, reasonText, cx+16, cy+14+swSize+44, cardW-30, cardH<110?15:17);
+    wrapText(ctx, reasonText, cx+14, cy+12+swSize+38, cardW-26, cardH<100?13:15);
   });
 
   // --- フッター ---
   ctx.strokeStyle = GOLD_SOFT;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(pW/2 - 100, pH - 90);
-  ctx.lineTo(pW/2 + 100, pH - 90);
+  ctx.moveTo(pW/2 - 100, pH - 85);
+  ctx.lineTo(pW/2 + 100, pH - 85);
   ctx.stroke();
 
   ctx.textAlign = "center";
   ctx.fillStyle = "#a89a7a";
-  ctx.font = "15px 'Hiragino Mincho ProN', serif";
-  fillTextSpaced(ctx, "藤井寺まちリンク協議会", pW/2, pH - 52, 4);
+  ctx.font = "14px 'Hiragino Mincho ProN', serif";
+  fillTextSpaced(ctx, "藤井寺まちリンク協議会", pW/2, pH - 50, 4);
 
   const link = document.createElement("a");
   link.download = `${orgName}_poster.jpg`;
