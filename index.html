@@ -167,7 +167,7 @@
       <div class="panel-box pattern-controls">
         <h2>⚙ 生成設定</h2>
         <label>繰り返し回数:
-          <input type="number" id="repeatCount" value="6" min="1" max="20">
+          <input type="number" id="repeatCount" value="4" min="1" max="20">
         </label>
         <label>画像サイズ(px):
           <input type="number" id="canvasSize" value="1600" min="400" max="3000" step="100">
@@ -421,7 +421,7 @@ function toggleColor(c){
   if(idx>=0){
     selectedColors.splice(idx,1);
   }else{
-    selectedColors.push({name:c.name, hex:c.hex, cat:c.cat, count:20, reason:""});
+    selectedColors.push({name:c.name, hex:c.hex, cat:c.cat, count:6, reason:""});
   }
   renderPalette();
   renderSelected();
@@ -504,7 +504,7 @@ function renderSelected(){
   });
 }
 
-/* ===================== タータン生成（2/2綾織り・左右対称：ロジックのみ） ===================== */
+/* ===================== タータン生成（2/2綾織り・左右対称） ===================== */
 function buildSequence(){
   let half = [];
   selectedColors.forEach(c=>{
@@ -541,7 +541,7 @@ function generateTartan(){
   }
   const seq = buildSequence();
   const size = parseInt(document.getElementById("canvasSize").value) || 1600;
-  const repeat = parseInt(document.getElementById("repeatCount").value) || 6;
+  const repeat = parseInt(document.getElementById("repeatCount").value) || 4;
 
   if(seq.length * repeat > 400){
     if(!confirm("設定が細かすぎる可能性があります。生成に時間がかかる場合がありますが続行しますか？")) return;
@@ -574,7 +574,22 @@ function roundRect(ctx,x,y,w,h,r){
   ctx.closePath();
 }
 
-/* ===================== 投票用ポスター作成（A4比率・おしゃれデザイン） ===================== */
+/* 文字間を少し空けて描画（手動レタースペーシング） */
+function fillTextSpaced(ctx, text, x, y, spacing){
+  let curX = x;
+  const widths = [...text].map(ch=>ctx.measureText(ch).width);
+  const totalWidth = widths.reduce((a,b)=>a+b,0) + spacing*(text.length-1);
+  curX = x - totalWidth/2;
+  const prevAlign = ctx.textAlign;
+  ctx.textAlign = "left";
+  [...text].forEach((ch,i)=>{
+    ctx.fillText(ch, curX, y);
+    curX += widths[i] + spacing;
+  });
+  ctx.textAlign = prevAlign;
+}
+
+/* ===================== 投票用ポスター作成（エレガント版） ===================== */
 function createPoster(){
   if(selectedColors.length === 0){
     alert("先に色を選択してタータンを生成してください");
@@ -583,66 +598,93 @@ function createPoster(){
   const patternCanvas = document.getElementById("tartanCanvas");
   const orgName = document.getElementById("orgName").value || "（応募者名未入力）";
 
-  // A4比率 (210:297) 相当のピクセルサイズ
   const pW = 1240;
   const pH = 1754;
-  const margin = 70;
+  const outerMargin = 50;
+  const innerMargin = 90;
 
   const posterCanvas = document.getElementById("posterCanvas");
   posterCanvas.width = pW;
   posterCanvas.height = pH;
   const ctx = posterCanvas.getContext("2d");
 
-  // 背景
-  ctx.fillStyle = "#fdfdfb";
+  const GOLD = "#b8933f";
+  const GOLD_SOFT = "#cdb06a";
+  const INK = "#2b2b2b";
+  const SUBTEXT = "#8a8a8a";
+
+  // --- 背景（クリーム系） ---
+  ctx.fillStyle = "#faf7f0";
   ctx.fillRect(0,0,pW,pH);
 
-  // 外枠（うすい装飾ライン）
-  ctx.strokeStyle = "#d8cfc0";
+  // --- 二重フレーム（高級感） ---
+  ctx.strokeStyle = GOLD;
   ctx.lineWidth = 2;
-  ctx.strokeRect(24,24,pW-48,pH-48);
+  ctx.strokeRect(outerMargin, outerMargin, pW-outerMargin*2, pH-outerMargin*2);
+  ctx.strokeStyle = GOLD_SOFT;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(outerMargin+10, outerMargin+10, pW-(outerMargin+10)*2, pH-(outerMargin+10)*2);
 
-  let y = margin;
+  let y = innerMargin + 10;
 
-  // --- 応募者名／団体名（大きく） ---
+  // --- 小さなラベル（上部） ---
   ctx.textAlign = "center";
-  ctx.fillStyle = "#1a1a1a";
-  ctx.font = "bold 58px sans-serif";
+  ctx.fillStyle = GOLD;
+  ctx.font = "14px 'Hiragino Mincho ProN', serif";
+  fillTextSpaced(ctx, "FUJIIDERA TARTAN DESIGN", pW/2, y, 6);
+  y += 46;
+
+  // --- 応募者名／団体名（明朝体・大きく） ---
+  ctx.fillStyle = INK;
+  ctx.font = "bold 56px 'Hiragino Mincho ProN', 'Yu Mincho', serif";
   ctx.fillText(orgName, pW/2, y + 50);
-  y += 90;
+  y += 92;
 
-  ctx.strokeStyle = "#c8a24a";
-  ctx.lineWidth = 3;
+  // --- 装飾ライン＋ダイヤモンド ---
+  ctx.strokeStyle = GOLD;
+  ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(pW/2 - 120, y);
-  ctx.lineTo(pW/2 + 120, y);
+  ctx.moveTo(pW/2 - 160, y);
+  ctx.lineTo(pW/2 - 16, y);
   ctx.stroke();
-  y += 40;
-
-  // --- タータン画像（大きく中央） ---
-  const patternSize = pW - margin*2;
+  ctx.beginPath();
+  ctx.moveTo(pW/2 + 16, y);
+  ctx.lineTo(pW/2 + 160, y);
+  ctx.stroke();
   ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.25)";
-  ctx.shadowBlur = 20;
-  ctx.shadowOffsetY = 6;
-  ctx.drawImage(patternCanvas, margin, y, patternSize, patternSize);
+  ctx.translate(pW/2, y);
+  ctx.rotate(Math.PI/4);
+  ctx.fillStyle = GOLD;
+  ctx.fillRect(-5,-5,10,10);
   ctx.restore();
-  ctx.strokeStyle = "#999";
+  y += 46;
+
+  // --- タータン画像 ---
+  const patternSize = pW - innerMargin*2;
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.22)";
+  ctx.shadowBlur = 24;
+  ctx.shadowOffsetY = 8;
+  ctx.drawImage(patternCanvas, innerMargin, y, patternSize, patternSize);
+  ctx.restore();
+  ctx.strokeStyle = GOLD_SOFT;
   ctx.lineWidth = 2;
-  ctx.strokeRect(margin, y, patternSize, patternSize);
-  y += patternSize + 50;
+  ctx.strokeRect(innerMargin, y, patternSize, patternSize);
+  y += patternSize + 48;
 
-  // --- 使用カラー一覧（カード形式／最大6色想定） ---
+  // --- セクション見出し ---
   ctx.textAlign = "left";
-  ctx.font = "bold 28px sans-serif";
-  ctx.fillStyle = "#1a1a1a";
-  ctx.fillText("● 使用カラー", margin, y);
-  y += 24;
+  ctx.fillStyle = GOLD;
+  ctx.fillRect(innerMargin, y-4, 5, 26);
+  ctx.fillStyle = INK;
+  ctx.font = "bold 24px 'Hiragino Mincho ProN', serif";
+  ctx.fillText("使 用 カ ラ ー", innerMargin + 18, y + 18);
+  y += 20;
 
+  // --- カラーカード ---
   const count = selectedColors.length;
   const cols = count <= 3 ? count : 3;
-  const rows = Math.ceil(count / cols);
-  const gap = 20;
+  const gap = 18;
   const cardW = (patternSize - gap*(cols-1)) / cols;
   const cardH = 150;
 
@@ -650,65 +692,76 @@ function createPoster(){
     const code = getCode(c.cat, i);
     const col = i % cols;
     const row = Math.floor(i / cols);
-    const cx = margin + col*(cardW+gap);
-    const cy = y + 20 + row*(cardH+gap);
+    const cx = innerMargin + col*(cardW+gap);
+    const cy = y + 26 + row*(cardH+gap);
 
-    // カード背景
+    // カード背景（控えめな影）
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.06)";
+    ctx.shadowBlur = 10;
     ctx.fillStyle = "#ffffff";
-    ctx.shadowColor = "rgba(0,0,0,0.08)";
-    ctx.shadowBlur = 8;
-    roundRect(ctx, cx, cy, cardW, cardH, 10);
+    roundRect(ctx, cx, cy, cardW, cardH, 4);
     ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = "#e3e3e3";
+    ctx.restore();
+    ctx.strokeStyle = "#e6ddc8";
     ctx.lineWidth = 1;
-    roundRect(ctx, cx, cy, cardW, cardH, 10);
+    roundRect(ctx, cx, cy, cardW, cardH, 4);
     ctx.stroke();
 
     // 色スウォッチ
     ctx.fillStyle = c.hex;
-    roundRect(ctx, cx+14, cy+14, 46, 46, 8);
-    ctx.fill();
+    ctx.fillRect(cx+16, cy+16, 42, 42);
     ctx.strokeStyle = "#ccc";
-    roundRect(ctx, cx+14, cy+14, 46, 46, 8);
-    ctx.stroke();
+    ctx.lineWidth = 1;
+    ctx.strokeRect(cx+16, cy+16, 42, 42);
 
-    // コードバッジ
-    ctx.fillStyle = "#333";
-    roundRect(ctx, cx+70, cy+16, 46, 22, 11);
+    // コードバッジ（ゴールド円）
+    ctx.beginPath();
+    ctx.arc(cx+90, cy+28, 16, 0, Math.PI*2);
+    ctx.fillStyle = GOLD;
     ctx.fill();
     ctx.fillStyle = "#fff";
-    ctx.font = "bold 14px sans-serif";
+    ctx.font = "bold 13px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(code, cx+93, cy+32);
+    ctx.fillText(code, cx+90, cy+32);
 
-    // 名前・HEX
+    // 名前
     ctx.textAlign = "left";
-    ctx.fillStyle = "#1a1a1a";
-    ctx.font = "bold 18px sans-serif";
-    ctx.fillText(c.name, cx+70, cy+56);
-    ctx.font = "13px sans-serif";
-    ctx.fillStyle = "#777";
-    ctx.fillText(`${c.hex} ／ ${c.count}本`, cx+70, cy+76);
+    ctx.fillStyle = INK;
+    ctx.font = "bold 18px 'Hiragino Mincho ProN', serif";
+    ctx.fillText(c.name, cx+116, cy+33);
 
-    // 理由
-    ctx.fillStyle = "#333";
-    ctx.font = "13px sans-serif";
+    // HEX・本数
+    ctx.font = "12px sans-serif";
+    ctx.fillStyle = SUBTEXT;
+    ctx.fillText(`${c.hex} ／ ${c.count}本`, cx+16, cy+82);
+
+    // 区切り線
+    ctx.strokeStyle = "#eee";
+    ctx.beginPath();
+    ctx.moveTo(cx+16, cy+92);
+    ctx.lineTo(cx+cardW-16, cy+92);
+    ctx.stroke();
+
+    // 理由（イタリック風）
+    ctx.fillStyle = "#555";
+    ctx.font = "italic 13px 'Hiragino Mincho ProN', serif";
     const reasonText = c.reason ? c.reason : "（理由未記入）";
-    wrapText(ctx, reasonText, cx+14, cy+104, cardW-28, 18);
+    wrapText(ctx, reasonText, cx+16, cy+112, cardW-32, 19);
   });
 
-  // --- フッター：転用防止の表記 ---
-  ctx.strokeStyle = "#ddd";
+  // --- フッター ---
+  ctx.strokeStyle = GOLD_SOFT;
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(margin, pH - 80);
-  ctx.lineTo(pW - margin, pH - 80);
+  ctx.moveTo(pW/2 - 100, pH - 96);
+  ctx.lineTo(pW/2 + 100, pH - 96);
   ctx.stroke();
 
   ctx.textAlign = "center";
-  ctx.font = "16px sans-serif";
-  ctx.fillStyle = "#999";
-  ctx.fillText("藤井寺まちリンク協議会", pW/2, pH - 48);
+  ctx.fillStyle = "#a89a7a";
+  ctx.font = "15px 'Hiragino Mincho ProN', serif";
+  fillTextSpaced(ctx, "藤井寺まちリンク協議会", pW/2, pH - 56, 4);
 
   // ダウンロード
   const link = document.createElement("a");
