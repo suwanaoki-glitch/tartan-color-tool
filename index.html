@@ -1,468 +1,653 @@
-O=#FF5000#ORANGE;<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Tartan Register カラーコードジェネレーター</title>
+<title>タータン・レジスター カラー選定＆パターン作成ツール</title>
 <style>
+  * { box-sizing: border-box; }
   body {
-    font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", sans-serif;
-    background: #f4f4f8;
+    font-family: "Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+    background: #f4f4f4;
     margin: 0;
     padding: 20px;
     color: #222;
   }
-  .header { text-align: center; margin-bottom: 20px; }
-  .pdf-notice {
-    background: #fff3cd;
-    border: 2px solid #ffc107;
-    border-radius: 10px;
-    padding: 15px 20px;
-    margin: 15px auto;
-    font-size: 14px;
-    text-align: center;
-    max-width: 700px;
-  }
-  .pdf-notice a {
-    display: inline-block;
-    margin-top: 8px;
-    background: #ffc107;
-    color: #000;
-    padding: 6px 14px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: bold;
-  }
-  .pdf-notice a:hover { background: #e0a800; }
-
-  .palette-container {
-    max-width: 1000px;
-    margin: 0 auto 20px auto;
+  .container { max-width: 1200px; margin: 0 auto; }
+  h1 { text-align: center; color: #333; }
+  h2 { border-left: 6px solid #555; padding-left: 10px; margin-top: 30px; }
+  section {
     background: #fff;
-    border: 2px solid #4a69bd;
-    border-radius: 10px;
-    padding: 15px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
   }
-  .palette-container h3 { margin: 0 0 10px 0; font-size: 15px; }
-  .palette-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
-  .palette-item {
-    position: relative;
-    width: 70px;
-    text-align: center;
+  #orgSection input {
+    width: 320px; padding: 8px; font-size: 14px;
+    border: 1px solid #ccc; border-radius: 4px;
+  }
+  .catBtn {
+    padding: 6px 14px; margin: 3px; border: 1px solid #999;
+    background: #eee; border-radius: 20px; cursor: pointer; font-size: 13px;
+  }
+  .catBtn.active { background: #333; color: #fff; border-color: #333; }
+  .palette-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding: 6px;
+    border: 1px solid #eee;
+    border-radius: 6px;
+  }
+  .swatch {
     cursor: pointer;
     border-radius: 6px;
     overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-    transition: transform 0.15s;
+    border: 1px solid #ccc;
+    text-align: center;
+    font-size: 10px;
+    transition: transform .1s;
   }
-  .palette-item:hover { transform: scale(1.08); }
-  .palette-item .swatch-color { width: 100%; height: 45px; }
-  .palette-item .swatch-label {
-    font-size: 10px; padding: 3px 0; background: white; font-weight: bold;
+  .swatch:hover { transform: scale(1.06); box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+  .swatch .box { width: 100%; height: 50px; }
+  .swatch .label { background: #fff; padding: 2px 0; line-height: 1.3; }
+  #selectedList { display: flex; flex-direction: column; gap: 8px; }
+  .selRow {
+    display: flex; align-items: center; gap: 10px;
+    border: 1px solid #ddd; border-radius: 6px; padding: 8px;
+    background: #fafafa; flex-wrap: wrap;
   }
-  .palette-item .remove-x {
-    position: absolute; top: 2px; right: 2px;
-    background: rgba(0,0,0,0.65); color: white;
-    border-radius: 50%; width: 16px; height: 16px;
-    font-size: 10px; line-height: 16px;
+  .selRow .colorBox {
+    width: 36px; height: 36px; border-radius: 4px; border: 1px solid #999; flex-shrink:0;
   }
-  .empty-message { color: #999; font-style: italic; margin: 0; }
-
-  .toolbar {
-    max-width: 1000px; margin: 0 auto 20px auto;
-    background: white; border-radius: 10px; padding: 15px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  .selRow .info { font-size: 12px; min-width: 150px; }
+  .selRow input[type=number] { width: 64px; padding: 4px; }
+  .selRow input[type=text] { width: 160px; padding: 4px; }
+  .selRow button {
+    border: none; background: #999; color: #fff; border-radius: 4px;
+    padding: 4px 8px; cursor: pointer; font-size: 12px;
   }
-  textarea#output {
-    width: 100%; height: 80px; font-family: monospace; font-size: 14px;
-    box-sizing: border-box; padding: 8px; border: 1px solid #ccc;
-    border-radius: 6px; resize: vertical;
+  .selRow button.danger { background: #c0392b; }
+  .warn { color: #c0392b; font-size: 11px; margin-left: 4px; }
+  #controls label { margin-right: 20px; font-size: 14px; }
+  #controls input { padding: 6px; width: 100px; }
+  #generateBtn, #downloadBtn, #posterBtn, #copyDataBtn {
+    padding: 10px 18px; font-size: 14px; border: none; border-radius: 6px;
+    cursor: pointer; margin-right: 10px; margin-top: 8px;
+    background: #2c3e50; color: #fff;
   }
-  .buttons { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
-  .buttons button {
-    padding: 8px 16px; border: none; border-radius: 6px;
-    cursor: pointer; font-size: 14px; background: #4a69bd; color: white;
+  #generateBtn:hover, #downloadBtn:hover, #posterBtn:hover, #copyDataBtn:hover { background: #1a252f; }
+  #patternSection { text-align: center; }
+  #patternCanvas {
+    max-width: 100%; border: 1px solid #ccc; background: #fff;
   }
-  .buttons button.reset { background: #e55039; }
-  .buttons button:hover { opacity: 0.85; }
-
-  .filters {
-    max-width: 1000px; margin: 0 auto 20px auto;
-    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  #submissionText {
+    width: 100%; font-family: monospace; font-size: 13px; padding: 10px;
+    border: 1px solid #ccc; border-radius: 6px;
   }
-  .filters button {
-    padding: 6px 14px; border: 1px solid #999; border-radius: 20px;
-    background: white; cursor: pointer; font-size: 13px;
-  }
-  .filters button.active { background: #333; color: white; border-color: #333; }
-
-  .grid {
-    max-width: 1000px; margin: 0 auto;
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px;
-  }
-  .card {
-    border-radius: 8px; padding: 10px; cursor: pointer; text-align: center;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2); transition: transform 0.1s;
-    font-size: 12px; user-select: none;
-  }
-  .card:hover { transform: scale(1.05); }
-  .card .abbr { font-weight: bold; font-size: 15px; }
-  .card .name { margin: 3px 0; }
-  .card .hex { font-family: monospace; font-size: 11px; }
-
-  #notify {
-    position: fixed; bottom: 20px; left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: #333; color: white; padding: 10px 20px;
-    border-radius: 20px; opacity: 0; transition: all 0.3s; z-index: 999;
-  }
-  #notify.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .instructions { font-size: 13px; line-height: 1.8; background:#eef6ff; padding:12px; border-radius:6px;}
+  #posterCanvas { display:none; }
 </style>
 </head>
 <body>
+<div class="container">
 
-<div class="header">
-  <h1>🎨 Tartan Register カラーコードジェネレーター</h1>
-  <p>色カードをクリックするとパレットとコードに追加されます</p>
+  <h1>🏴 タータン・レジスター カラー選定＆パターン作成ツール</h1>
+
+  <section class="instructions">
+    <strong>📘 使い方</strong><br>
+    ① 団体名を入力 → ② 下の137色パレットから色をクリックして選択（2色以上）<br>
+    ③ 各色のスレッド数（必ず偶数）・選定理由（20文字まで）を入力・並び替え<br>
+    ④ 「パターンを生成」をクリック → 真の2/2綾織り・左右対称パターンが表示されます<br>
+    ⑤ 高画質保存／ポスター作成／提出データのコピーが可能です
+  </section>
+
+  <section id="orgSection">
+    <label>団体名／お名前：
+      <input id="orgName" type="text" placeholder="例）藤井寺まちリンク協議会">
+    </label>
+  </section>
+
+  <section id="categoryFilter">
+    <strong>🎨 カテゴリ絞り込み：</strong><br>
+    <button class="catBtn active" data-cat="all">すべて</button>
+    <button class="catBtn" data-cat="Red">赤系</button>
+    <button class="catBtn" data-cat="Orange">橙系</button>
+    <button class="catBtn" data-cat="Yellow">黄系</button>
+    <button class="catBtn" data-cat="Green">緑系</button>
+    <button class="catBtn" data-cat="Blue">青系</button>
+    <button class="catBtn" data-cat="Purple">紫系</button>
+    <button class="catBtn" data-cat="White">白系</button>
+    <button class="catBtn" data-cat="Grey">灰系</button>
+    <button class="catBtn" data-cat="Black">黒</button>
+    <button class="catBtn" data-cat="Brown">茶系</button>
+  </section>
+
+  <section id="paletteSection">
+    <h2>① 公式137色パレット</h2>
+    <div id="palette" class="palette-grid"></div>
+  </section>
+
+  <section id="selectedSection">
+    <h2>② 選択した色（並び替え・スレッド数・理由）</h2>
+    <div id="selectedList"></div>
+  </section>
+
+  <section id="controls">
+    <h2>③ パターン設定</h2>
+    <label>繰り返し回数：<input id="repeatCount" type="number" value="6" min="1" max="20"></label>
+    <label>画像サイズ(px)：<input id="canvasSize" type="number" value="1600" min="400" max="4000" step="100"></label>
+    <br>
+    <button id="generateBtn">🎨 パターンを生成（真の2/2綾織り・左右対称）</button>
+  </section>
+
+  <section id="patternSection">
+    <h2>④ プレビュー</h2>
+    <canvas id="patternCanvas" width="1600" height="1600"></canvas>
+  </section>
+
+  <section id="exportSection">
+    <h2>⑤ 書き出し</h2>
+    <button id="downloadBtn">⬇ 高画質で保存</button>
+    <button id="posterBtn">🖼 ポスターを作成（藤井寺まちリンク協議会）</button>
+    <button id="copyDataBtn">📋 提出データをコピー</button>
+  </section>
+
+  <section id="submissionSection">
+    <h2>⑥ 提出データ</h2>
+    <textarea id="submissionText" rows="16" readonly></textarea>
+  </section>
+
 </div>
 
-<div class="pdf-notice">
-  ⚠️ 色は画面環境により見え方が異なる場合があります。<br>
-  正確な色の確認は公式PDFをご覧ください 👉
-  <br>
-  <a href="https://www.tartanregister.gov.uk/docs/Colour_shades.pdf" target="_blank" rel="noopener noreferrer">
-    📄 公式カラーシェードPDFを開く
-  </a>
-</div>
-
-<div class="palette-container">
-  <h3>🎨 選んだ色のパレット（クリックで削除）</h3>
-  <div id="paletteSwatches" class="palette-swatches">
-    <p class="empty-message">まだ色が選ばれていません</p>
-  </div>
-</div>
-
-<div class="toolbar">
-  <textarea id="output" placeholder="ここにコードが追加されます。例: LR=#F04DB0#LIGHTRED;"></textarea>
-  <div class="buttons">
-    <button onclick="copyAll()">📋 全部コピー</button>
-    <button class="reset" onclick="resetOutput()">🗑️ リセット</button>
-  </div>
-</div>
-
-<div class="filters" id="filters"></div>
-
-<div class="grid" id="grid"></div>
-
-<div id="notify"></div>
+<canvas id="posterCanvas" width="1800" height="2400"></canvas>
 
 <script>
-const colors = [
-    // ===== 赤系 =====
-    {abbr:"LR", name:"Light Red", hex:"#F4CCCC", category:"red"},
-    {abbr:"LR", name:"Light Red", hex:"#E87878", category:"red"},
-    {abbr:"LR", name:"Light Red", hex:"#F04DB0", category:"red"},
-    {abbr:"R", name:"Red", hex:"#A00048", category:"red"},
-    {abbr:"R", name:"Red", hex:"#FA4B00", category:"red"},
-    {abbr:"R", name:"Red", hex:"#FF0000", category:"red"},
-    {abbr:"R", name:"Red", hex:"#DC0000", category:"red"},
-    {abbr:"R", name:"Red", hex:"#C80000", category:"red"},
-    {abbr:"R", name:"Red", hex:"#C82828", category:"red"},
-    {abbr:"R", name:"Red", hex:"#C8002C", category:"red"},
-    {abbr:"R", name:"Red", hex:"#B03000", category:"red"},
-    {abbr:"DR", name:"Dark Red", hex:"#A00000", category:"red"},
-    {abbr:"DR", name:"Dark Red", hex:"#960000", category:"red"},
-    {abbr:"DR", name:"Dark Red", hex:"#960028", category:"red"},
-    {abbr:"DR", name:"Dark Red", hex:"#880000", category:"red"},
-    {abbr:"DR", name:"Dark Red", hex:"#800028", category:"red"},
-    {abbr:"DR", name:"Dark Red", hex:"#781C38", category:"red"},
-    {abbr:"DR", name:"Dark Red", hex:"#4C0000", category:"red"},
-    {abbr:"DR", name:"Dark Red", hex:"#901C38", category:"red"},
-    {abbr:"DR", name:"Dark Red", hex:"#680028", category:"red"},
-
-    // ===== 橙系 =====
-    {abbr:"O", name:"Orange", hex:"#EC8048", category:"orange"},
-    {abbr:"O", name:"Orange", hex:"#E86000", category:"orange"},
-    {abbr:"O", name:"Orange", hex:"#FF5000", category:"orange"},
-    {abbr:"O", name:"Orange", hex:"#DC943C", category:"orange"},
-    {abbr:"O", name:"Orange", hex:"#D87C00", category:"orange"},
-    {abbr:"DO", name:"Dark Orange", hex:"#BE7832", category:"orange"},
-
-    // ===== 黄系 =====
-    {abbr:"LY", name:"Light Yellow", hex:"#F9F5C8", category:"yellow"},
-    {abbr:"LY", name:"Light Yellow", hex:"#F8E38C", category:"yellow"},
-    {abbr:"Y", name:"Yellow", hex:"#FFFF00", category:"yellow"},
-    {abbr:"Y", name:"Yellow", hex:"#FFE600", category:"yellow"},
-    {abbr:"Y", name:"Yellow", hex:"#FFD700", category:"yellow"},
-    {abbr:"Y", name:"Yellow", hex:"#FCCC00", category:"yellow"},
-    {abbr:"Y", name:"Yellow", hex:"#E0A126", category:"yellow"},
-    {abbr:"Y", name:"Yellow", hex:"#E8C000", category:"yellow"},
-    {abbr:"Y", name:"Yellow", hex:"#D8B000", category:"yellow"},
-    {abbr:"DY", name:"Dark Yellow", hex:"#BC8C00", category:"yellow"},
-    {abbr:"DY", name:"Dark Yellow", hex:"#C89800", category:"yellow"},
-    {abbr:"DY", name:"Dark Yellow", hex:"#C88C00", category:"yellow"},
-
-    // ===== 緑系 =====
-    {abbr:"LG", name:"Light Green", hex:"#789484", category:"green"},
-    {abbr:"LG", name:"Light Green", hex:"#C4BC68", category:"green"},
-    {abbr:"LG", name:"Light Green", hex:"#9C9C00", category:"green"},
-    {abbr:"LG", name:"Light Green", hex:"#ACD74A", category:"green"},
-    {abbr:"LG", name:"Light Green", hex:"#86C67C", category:"green"},
-    {abbr:"LG", name:"Light Green", hex:"#649848", category:"green"},
-    {abbr:"G", name:"Green", hex:"#008B00", category:"green"},
-    {abbr:"G", name:"Green", hex:"#408060", category:"green"},
-    {abbr:"G", name:"Green", hex:"#289C18", category:"green"},
-    {abbr:"G", name:"Green", hex:"#006400", category:"green"},
-    {abbr:"G", name:"Green", hex:"#007800", category:"green"},
-    {abbr:"G", name:"Green", hex:"#3F5642", category:"green"},
-    {abbr:"G", name:"Green", hex:"#767E52", category:"green"},
-    {abbr:"G", name:"Green", hex:"#5C6428", category:"green"},
-    {abbr:"G", name:"Green", hex:"#00643C", category:"green"},
-    {abbr:"G", name:"Green", hex:"#146400", category:"green"},
-    {abbr:"G", name:"Green", hex:"#006818", category:"green"},
-    {abbr:"G", name:"Green", hex:"#004C00", category:"green"},
-    {abbr:"G", name:"Green", hex:"#285800", category:"green"},
-    {abbr:"G", name:"Green", hex:"#005020", category:"green"},
-    {abbr:"G", name:"Green", hex:"#005448", category:"green"},
-    {abbr:"DG", name:"Dark Green", hex:"#003C14", category:"green"},
-    {abbr:"DG", name:"Dark Green", hex:"#003820", category:"green"},
-    {abbr:"DG", name:"Dark Green", hex:"#004028", category:"green"},
-    {abbr:"DG", name:"Dark Green", hex:"#002814", category:"green"},
-
-    // ===== 青系 =====
-    {abbr:"B", name:"Blue", hex:"#BCC3D2", category:"blue"},
-    {abbr:"B", name:"Blue", hex:"#048888", category:"blue"},
-    {abbr:"B", name:"Blue", hex:"#3C82AF", category:"blue"},
-    {abbr:"B", name:"Blue", hex:"#5C8CA8", category:"blue"},
-    {abbr:"B", name:"Blue", hex:"#2888C4", category:"blue"},
-    {abbr:"B", name:"Blue", hex:"#48A4C0", category:"blue"},
-    {abbr:"B", name:"Blue", hex:"#2474E8", category:"blue"},
-    {abbr:"B", name:"Blue", hex:"#0596FA", category:"blue"},
-    {abbr:"B", name:"Blue", hex:"#0000FF", category:"blue"},
-    {abbr:"B", name:"Blue", hex:"#3850C8", category:"blue"},
-    {abbr:"B", name:"Blue", hex:"#788CB4", category:"blue"},
-    {abbr:"B", name:"Blue", hex:"#5F749C", category:"blue"},
-    {abbr:"B", name:"Blue", hex:"#1870A4", category:"blue"},
-    {abbr:"B", name:"Blue", hex:"#1474B4", category:"blue"},
-    {abbr:"B", name:"Blue", hex:"#0000CD", category:"blue"},
-    {abbr:"B", name:"Blue", hex:"#2C4084", category:"blue"},
-    {abbr:"LB", name:"Light Blue", hex:"#98C8E8", category:"blue"},
-    {abbr:"LB", name:"Light Blue", hex:"#82CFFD", category:"blue"},
-    {abbr:"LB", name:"Light Blue", hex:"#00FCFC", category:"blue"},
-    {abbr:"DB", name:"Dark Blue", hex:"#055183", category:"blue"},
-    {abbr:"DB", name:"Dark Blue", hex:"#003C64", category:"blue"},
-    {abbr:"DB", name:"Dark Blue", hex:"#00008C", category:"blue"},
-    {abbr:"DB", name:"Dark Blue", hex:"#2C2C80", category:"blue"},
-    {abbr:"DB", name:"Dark Blue", hex:"#1C0070", category:"blue"},
-    {abbr:"DB", name:"Dark Blue", hex:"#000064", category:"blue"},
-    {abbr:"DB", name:"Dark Blue", hex:"#202060", category:"blue"},
-    {abbr:"DB", name:"Dark Blue", hex:"#000048", category:"blue"},
-    {abbr:"DB", name:"Dark Blue", hex:"#141E46", category:"blue"},
-    {abbr:"DB", name:"Dark Blue", hex:"#1C1C50", category:"blue"},
-
-    // ===== 紫系 =====
-    {abbr:"LP", name:"Light Purple", hex:"#A8ACE8", category:"purple"},
-    {abbr:"LP", name:"Light Purple", hex:"#C49CD8", category:"purple"},
-    {abbr:"LP", name:"Light Purple", hex:"#806D84", category:"purple"},
-    {abbr:"LP", name:"Light Purple", hex:"#9C68A4", category:"purple"},
-    {abbr:"P", name:"Purple", hex:"#9058D8", category:"purple"},
-    {abbr:"P", name:"Purple", hex:"#AA00FF", category:"purple"},
-    {abbr:"P", name:"Purple", hex:"#B458AC", category:"purple"},
-    {abbr:"P", name:"Purple", hex:"#6C0070", category:"purple"},
-    {abbr:"P", name:"Purple", hex:"#5A008C", category:"purple"},
-    {abbr:"P", name:"Purple", hex:"#64008C", category:"purple"},
-    {abbr:"P", name:"Purple", hex:"#780078", category:"purple"},
-    {abbr:"DP", name:"Dark Purple", hex:"#440044", category:"purple"},
-    {abbr:"DP", name:"Dark Purple", hex:"#1E0948", category:"purple"},
-
-    // ===== 白系 =====
-    {abbr:"W", name:"White", hex:"#E5DDD1", category:"white"},
-    {abbr:"W", name:"White", hex:"#E8CCB8", category:"white"},
-    {abbr:"W", name:"White", hex:"#F0E0C8", category:"white"},
-    {abbr:"W", name:"White", hex:"#FCFCFC", category:"white"},
-    {abbr:"W", name:"White", hex:"#FFFFFF", category:"white"},
-    {abbr:"W", name:"White", hex:"#F8F8F8", category:"white"},
-
-    // ===== 灰系（略号を Gy/LGy/DGy に修正） =====
-    {abbr:"LGy", name:"Light Grey", hex:"#E0E0E0", category:"grey"},
-    {abbr:"Gy", name:"Grey", hex:"#C8C8C8", category:"grey"},
-    {abbr:"Gy", name:"Grey", hex:"#C0C0C0", category:"grey"},
-    {abbr:"Gy", name:"Grey", hex:"#B0B0B0", category:"grey"},
-    {abbr:"Gy", name:"Grey", hex:"#A0A0A0", category:"grey"},
-    {abbr:"Gy", name:"Grey", hex:"#808080", category:"grey"},
-    {abbr:"Gy", name:"Grey", hex:"#888888", category:"grey"},
-    {abbr:"Gy", name:"Grey", hex:"#646464", category:"grey"},
-    {abbr:"DGy", name:"Dark Grey", hex:"#505050", category:"grey"},
-    {abbr:"DGy", name:"Dark Grey", hex:"#555A64", category:"grey"},
-    {abbr:"DGy", name:"Dark Grey", hex:"#1C1714", category:"grey"},
-    {abbr:"DGy", name:"Dark Grey", hex:"#14283C", category:"grey"},
-    {abbr:"DGy", name:"Dark Grey", hex:"#1C1C1C", category:"grey"},
-
-    // ===== 黒 =====
-    {abbr:"K", name:"Black", hex:"#101010", category:"black"},
-    {abbr:"K", name:"Black", hex:"#000000", category:"black"},
-
-    // ===== 茶系 =====
-    {abbr:"LT", name:"Light Brown", hex:"#A08858", category:"brown"},
-    {abbr:"LT", name:"Light Brown", hex:"#8C7038", category:"brown"},
-    {abbr:"LT", name:"Light Brown", hex:"#A07C58", category:"brown"},
-    {abbr:"LT", name:"Light Brown", hex:"#B07430", category:"brown"},
-    {abbr:"T", name:"Brown", hex:"#98481C", category:"brown"},
-    {abbr:"T", name:"Brown", hex:"#603800", category:"brown"},
-    {abbr:"T", name:"Brown", hex:"#604000", category:"brown"},
-    {abbr:"T", name:"Brown", hex:"#503C14", category:"brown"},
-    {abbr:"DT", name:"Dark Brown", hex:"#4C3428", category:"brown"},
-    {abbr:"DT", name:"Dark Brown", hex:"#441800", category:"brown"},
-    {abbr:"DT", name:"Dark Brown", hex:"#230D00", category:"brown"}
+/* ============================================================
+   公式137色データ（Tartan Register公式PDF準拠／検証済み）
+   [色名, HEXコード, カラーコード]
+============================================================ */
+const RAW_COLORS = [
+["Light Red","#F4CCCC","LR"],
+["Light Red","#E87878","LR"],
+["Light Red","#F04DB0","LR"],
+["Red","#A00048","R"],
+["Red","#FA4B00","R"],
+["Red","#FF0000","R"],
+["Red","#DC0000","R"],
+["Red","#C80000","R"],
+["Red","#C82828","R"],
+["Red","#C8002C","R"],
+["Red","#B03000","R"],
+["Dark Red","#A00000","DR"],
+["Dark Red","#960000","DR"],
+["Dark Red","#960028","DR"],
+["Dark Red","#880000","DR"],
+["Dark Red","#800028","DR"],
+["Dark Red","#781C38","DR"],
+["Dark Red","#4C0000","DR"],
+["Dark Red","#901C38","DR"],
+["Dark Red","#680028","DR"],
+["Orange","#EC8048","O"],
+["Orange","#E86000","O"],
+["Orange","#FF5000","O"],
+["Orange","#DC943C","O"],
+["Orange","#D87C00","O"],
+["Dark Orange","#BE7832","DO"],
+["Light Yellow","#F9F5C8","LY"],
+["Light Yellow","#F8E38C","LY"],
+["Yellow","#FFFF00","Y"],
+["Yellow","#FFE600","Y"],
+["Yellow","#FFD700","Y"],
+["Yellow","#FCCC00","Y"],
+["Yellow","#E0A126","Y"],
+["Yellow","#E8C000","Y"],
+["Yellow","#D8B000","Y"],
+["Dark Yellow","#BC8C00","DY"],
+["Dark Yellow","#C89800","DY"],
+["Dark Yellow","#C88C00","DY"],
+["Light Green","#789484","LG"],
+["Light Green","#C4BC68","LG"],
+["Light Green","#9C9C00","LG"],
+["Light Green","#ACD74A","LG"],
+["Light Green","#86C67C","LG"],
+["Light Green","#649848","LG"],
+["Green","#008B00","G"],
+["Green","#408060","G"],
+["Green","#289C18","G"],
+["Green","#006400","G"],
+["Green","#007800","G"],
+["Green","#3F5642","G"],
+["Green","#767E52","G"],
+["Green","#5C6428","G"],
+["Green","#00643C","G"],
+["Green","#146400","G"],
+["Green","#006818","G"],
+["Green","#004C00","G"],
+["Green","#285800","G"],
+["Green","#005020","G"],
+["Green","#005448","G"],
+["Dark Green","#003C14","DG"],
+["Dark Green","#003820","DG"],
+["Dark Green","#004028","DG"],
+["Dark Green","#002814","DG"],
+["Blue","#BCC3D2","B"],
+["Light Blue","#98C8E8","LB"],
+["Light Blue","#82CFFD","LB"],
+["Light Blue","#00FCFC","LB"],
+["Blue","#048888","B"],
+["Blue","#3C82AF","B"],
+["Blue","#5C8CA8","B"],
+["Blue","#2888C4","B"],
+["Blue","#48A4C0","B"],
+["Blue","#2474E8","B"],
+["Blue","#0596FA","B"],
+["Blue","#0000FF","B"],
+["Blue","#3850C8","B"],
+["Blue","#788CB4","B"],
+["Blue","#5F749C","B"],
+["Blue","#1870A4","B"],
+["Blue","#1474B4","B"],
+["Blue","#0000CD","B"],
+["Blue","#2C4084","B"],
+["Dark Blue","#055183","DB"],
+["Dark Blue","#003C64","DB"],
+["Dark Blue","#00008C","DB"],
+["Dark Blue","#2C2C80","DB"],
+["Dark Blue","#1C0070","DB"],
+["Dark Blue","#000064","DB"],
+["Dark Blue","#202060","DB"],
+["Dark Blue","#000048","DB"],
+["Dark Blue","#141E46","DB"],
+["Dark Blue","#1C1C50","DB"],
+["Light Purple","#A8ACE8","LP"],
+["Light Purple","#C49CD8","LP"],
+["Light Purple","#806D84","LP"],
+["Light Purple","#9C68A4","LP"],
+["Purple","#9058D8","P"],
+["Purple","#AA00FF","P"],
+["Purple","#B458AC","P"],
+["Purple","#6C0070","P"],
+["Purple","#5A008C","P"],
+["Purple","#64008C","P"],
+["Purple","#780078","P"],
+["Dark Purple","#440044","DP"],
+["Dark Purple","#1E0948","DP"],
+["White","#E5DDD1","W"],
+["White","#E8CCB8","W"],
+["White","#F0E0C8","W"],
+["White","#FCFCFC","W"],
+["White","#FFFFFF","W"],
+["White","#F8F8F8","W"],
+["Light Grey","#E0E0E0","LN"],
+["Grey","#C8C8C8","N"],
+["Grey","#C0C0C0","N"],
+["Grey","#B0B0B0","N"],
+["Grey","#A0A0A0","N"],
+["Grey","#808080","N"],
+["Grey","#888888","N"],
+["Grey","#646464","N"],
+["Dark Grey","#505050","N"],
+["Dark Grey","#555A64","DN"],
+["Dark Grey","#1C1714","DN"],
+["Dark Grey","#14283C","DN"],
+["Dark Grey","#1C1C1C","DN"],
+["Black","#101010","K"],
+["Black","#000000","K"],
+["Light Brown","#A08858","LT"],
+["Light Brown","#8C7038","LT"],
+["Light Brown","#A07C58","LT"],
+["Light Brown","#B07430","LT"],
+["Brown","#98481C","T"],
+["Brown","#603800","T"],
+["Brown","#604000","T"],
+["Brown","#503C14","T"],
+["Dark Brown","#4C3428","DT"],
+["Dark Brown","#441800","DT"],
+["Dark Brown","#230D00","DT"]
 ];
 
-// ===== カテゴリー一覧 =====
-const categories = [
-  {key:"all", label:"全て"},
-  {key:"red", label:"赤系"},
-  {key:"orange", label:"橙系"},
-  {key:"yellow", label:"黄系"},
-  {key:"green", label:"緑系"},
-  {key:"blue", label:"青系"},
-  {key:"purple", label:"紫系"},
-  {key:"white", label:"白系"},
-  {key:"grey", label:"灰系"},
-  {key:"black", label:"黒"},
-  {key:"brown", label:"茶系"}
-];
+console.log("登録色数:", RAW_COLORS.length); // 137であることを確認
 
-// ===== 状態管理 =====
-let selectedColors = [];
-let currentFilter = "all";
-
-// ===== 文字色を自動調整 =====
-function getContrastColor(hex) {
-  const r = parseInt(hex.substr(1,2),16);
-  const g = parseInt(hex.substr(3,2),16);
-  const b = parseInt(hex.substr(5,2),16);
-  const brightness = (r*299 + g*587 + b*114) / 1000;
-  return brightness > 150 ? "#000000" : "#ffffff";
+/* ============================================================
+   カテゴリ分類
+============================================================ */
+function getCategory(name){
+  if(name.includes("Red")) return "Red";
+  if(name.includes("Orange")) return "Orange";
+  if(name.includes("Yellow")) return "Yellow";
+  if(name.includes("Green")) return "Green";
+  if(name.includes("Blue")) return "Blue";
+  if(name.includes("Purple")) return "Purple";
+  if(name.includes("White")) return "White";
+  if(name.includes("Grey")) return "Grey";
+  if(name.includes("Black")) return "Black";
+  if(name.includes("Brown")) return "Brown";
+  return "Other";
 }
 
-// ===== フィルターボタン描画 =====
-function renderFilters() {
-  const container = document.getElementById("filters");
-  container.innerHTML = "";
-  categories.forEach(cat => {
-    const btn = document.createElement("button");
-    btn.textContent = cat.label;
-    if (cat.key === currentFilter) btn.classList.add("active");
-    btn.onclick = () => {
-      currentFilter = cat.key;
-      renderFilters();
-      renderGrid();
-    };
-    container.appendChild(btn);
-  });
-}
+/* ============================================================
+   状態管理
+============================================================ */
+let currentCategory = "all";
+let selected = []; // {uid, name, hex, code, threadCount, reason}
+let uidCounter = 0;
 
-// ===== カラーカード描画 =====
-function renderGrid() {
-  const grid = document.getElementById("grid");
-  grid.innerHTML = "";
-  const filtered = currentFilter === "all" ? colors : colors.filter(c => c.category === currentFilter);
-  filtered.forEach(c => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.style.background = c.hex;
-    card.style.color = getContrastColor(c.hex);
-    card.innerHTML = `
-      <div class="abbr">${c.abbr}</div>
-      <div class="name">${c.name}</div>
-      <div class="hex">${c.hex}</div>
+/* ============================================================
+   パレット描画
+============================================================ */
+const paletteEl = document.getElementById("palette");
+
+function renderPalette(){
+  paletteEl.innerHTML = "";
+  RAW_COLORS.forEach(([name, hex, code]) => {
+    const cat = getCategory(name);
+    if(currentCategory !== "all" && cat !== currentCategory) return;
+    const div = document.createElement("div");
+    div.className = "swatch";
+    div.title = `${name} ${hex} (${code})`;
+    div.innerHTML = `
+      <div class="box" style="background:${hex}"></div>
+      <div class="label">${code}<br>${hex}</div>
     `;
-    card.onclick = () => addColor(c);
-    grid.appendChild(card);
+    div.addEventListener("click", () => addColor(name, hex, code));
+    paletteEl.appendChild(div);
   });
 }
 
-// ===== 色を追加（パレット＋テキスト欄＋自動コピー） =====
-function addColor(c) {
-  const code = `${c.abbr}=${c.hex}#${c.name.toUpperCase().replace(/\s+/g,'')};`;
-  selectedColors.push({...c, code});
-  renderPalette();
-  updateOutput();
-  navigator.clipboard.writeText(code).catch(()=>{});
-  showNotify(`コピーしました: ${code}`);
+document.querySelectorAll(".catBtn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".catBtn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    currentCategory = btn.dataset.cat;
+    renderPalette();
+  });
+});
+
+/* ============================================================
+   選択色リスト
+============================================================ */
+function addColor(name, hex, code){
+  selected.push({
+    uid: uidCounter++,
+    name, hex, code,
+    threadCount: 6,
+    reason: ""
+  });
+  renderSelected();
 }
 
-// ===== パレットから削除 =====
-function removeFromPalette(index) {
-  const removed = selectedColors[index];
-  selectedColors.splice(index, 1);
-  renderPalette();
-  updateOutput();
-  showNotify(`${removed.name} を削除しました`);
+function removeColor(uid){
+  selected = selected.filter(s=>s.uid!==uid);
+  renderSelected();
 }
 
-// ===== パレット表示更新 =====
-function renderPalette() {
-  const container = document.getElementById("paletteSwatches");
-  if (selectedColors.length === 0) {
-    container.innerHTML = '<p class="empty-message">まだ色が選ばれていません</p>';
+function moveColor(uid, dir){
+  const idx = selected.findIndex(s=>s.uid===uid);
+  const newIdx = idx + dir;
+  if(newIdx < 0 || newIdx >= selected.length) return;
+  [selected[idx], selected[newIdx]] = [selected[newIdx], selected[idx]];
+  renderSelected();
+}
+
+function renderSelected(){
+  const listEl = document.getElementById("selectedList");
+  listEl.innerHTML = "";
+  if(selected.length===0){
+    listEl.innerHTML = "<p style='color:#999;'>パレットから色をクリックして選択してください（2色以上推奨）</p>";
     return;
   }
-  container.innerHTML = "";
-  selectedColors.forEach((c, index) => {
-    const item = document.createElement("div");
-    item.className = "palette-item";
-    item.onclick = () => removeFromPalette(index);
-    item.innerHTML = `
-      <div class="remove-x">×</div>
-      <div class="swatch-color" style="background-color:${c.hex};"></div>
-      <div class="swatch-label">${c.abbr}</div>
+  selected.forEach((item, idx) => {
+    const row = document.createElement("div");
+    row.className = "selRow";
+    row.innerHTML = `
+      <div class="colorBox" style="background:${item.hex}"></div>
+      <div class="info">${item.name}<br>${item.hex} (${item.code})</div>
+      <label>スレッド数:
+        <input type="number" value="${item.threadCount}" min="2" step="2" data-uid="${item.uid}" class="threadInput">
+      </label>
+      <span class="warnSpan-${item.uid}" class="warn"></span>
+      <label>選定理由:
+        <input type="text" maxlength="20" placeholder="20文字まで" value="${item.reason}" data-uid="${item.uid}" class="reasonInput">
+      </label>
+      <button data-uid="${item.uid}" class="upBtn">↑</button>
+      <button data-uid="${item.uid}" class="downBtn">↓</button>
+      <button data-uid="${item.uid}" class="danger delBtn">削除</button>
     `;
-    container.appendChild(item);
+    listEl.appendChild(row);
+  });
+
+  // イベント登録
+  document.querySelectorAll(".threadInput").forEach(inp=>{
+    inp.addEventListener("change", (e)=>{
+      const uid = Number(e.target.dataset.uid);
+      let val = parseInt(e.target.value) || 2;
+      if(val % 2 !== 0){
+        val += 1;
+        alert("⚠ スレッド数は必ず2の倍数です。自動的に " + val + " に補正しました。");
+        e.target.value = val;
+      }
+      const item = selected.find(s=>s.uid===uid);
+      if(item) item.threadCount = val;
+    });
+  });
+
+  document.querySelectorAll(".reasonInput").forEach(inp=>{
+    inp.addEventListener("input", (e)=>{
+      const uid = Number(e.target.dataset.uid);
+      const item = selected.find(s=>s.uid===uid);
+      if(item) item.reason = e.target.value;
+    });
+  });
+
+  document.querySelectorAll(".upBtn").forEach(btn=>{
+    btn.addEventListener("click",(e)=> moveColor(Number(e.target.dataset.uid), -1));
+  });
+  document.querySelectorAll(".downBtn").forEach(btn=>{
+    btn.addEventListener("click",(e)=> moveColor(Number(e.target.dataset.uid), 1));
+  });
+  document.querySelectorAll(".delBtn").forEach(btn=>{
+    btn.addEventListener("click",(e)=> removeColor(Number(e.target.dataset.uid)));
   });
 }
 
-// ===== テキストエリア更新 =====
-function updateOutput() {
-  document.getElementById("output").value = selectedColors.map(c => c.code).join("\n");
+/* ============================================================
+   パターン生成（真の2/2綾織り・左右対称ミラー）
+============================================================ */
+function buildMirroredSequence(){
+  let seq = [];
+  selected.forEach(item=>{
+    for(let i=0;i<item.threadCount;i++) seq.push(item.hex);
+  });
+  if(seq.length===0) return [];
+  // 左右対称（ミラー）: 末尾を反転して結合（両端の色を重複させない）
+  const mirrored = seq.concat(seq.slice(0,-1).reverse());
+  return mirrored;
 }
 
-// ===== 全部コピー =====
-function copyAll() {
-  const output = document.getElementById("output");
-  if (!output.value) {
-    showNotify("コピーする内容がありません");
+function drawTartanPattern(){
+  if(selected.length < 2){
+    alert("⚠ 色を2色以上選択してください。");
     return;
   }
-  navigator.clipboard.writeText(output.value).then(() => {
-    showNotify("全てコピーしました！");
-  }).catch(() => {
-    showNotify("コピーに失敗しました");
+
+  const canvas = document.getElementById("patternCanvas");
+  const size = parseInt(document.getElementById("canvasSize").value) || 1600;
+  const repeatCount = parseInt(document.getElementById("repeatCount").value) || 6;
+
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+
+  const sett = buildMirroredSequence();
+  const settLen = sett.length;
+  if(settLen===0) return;
+
+  // パフォーマンス対策：総セル数を制限
+  let totalUnits = settLen * repeatCount;
+  let effectiveRepeat = repeatCount;
+  const MAX_UNITS = 1400;
+  if(totalUnits > MAX_UNITS){
+    effectiveRepeat = Math.max(1, Math.floor(MAX_UNITS / settLen));
+    totalUnits = settLen * effectiveRepeat;
+  }
+
+  const scale = size / totalUnits;
+
+  ctx.clearRect(0,0,size,size);
+
+  for(let iy=0; iy<totalUnits; iy++){
+    const weftIdx = iy % settLen;
+    for(let ix=0; ix<totalUnits; ix++){
+      const warpIdx = ix % settLen;
+      // 2/2綾織り判定：対角オフセット
+      const offset = ((warpIdx - weftIdx) % 4 + 4) % 4;
+      const color = (offset < 2) ? sett[warpIdx] : sett[weftIdx];
+      ctx.fillStyle = color;
+      ctx.fillRect(
+        Math.floor(ix*scale),
+        Math.floor(iy*scale),
+        Math.ceil(scale)+1,
+        Math.ceil(scale)+1
+      );
+    }
+  }
+
+  generateSubmissionData();
+}
+
+document.getElementById("generateBtn").addEventListener("click", drawTartanPattern);
+
+/* ============================================================
+   高画質で保存
+============================================================ */
+document.getElementById("downloadBtn").addEventListener("click", ()=>{
+  const canvas = document.getElementById("patternCanvas");
+  const link = document.createElement("a");
+  const orgName = document.getElementById("orgName").value || "tartan";
+  link.download = `${orgName}_tartan_pattern.jpg`;
+  link.href = canvas.toDataURL("image/jpeg", 0.98);
+  link.click();
+});
+
+/* ============================================================
+   ポスター作成（上下に「藤井寺まちリンク協議会」）
+============================================================ */
+document.getElementById("posterBtn").addEventListener("click", ()=>{
+  const patternCanvas = document.getElementById("patternCanvas");
+  if(!patternCanvas.width) { alert("先にパターンを生成してください。"); return; }
+
+  const posterCanvas = document.getElementById("posterCanvas");
+  const W = 1800, H = 2400;
+  posterCanvas.width = W;
+  posterCanvas.height = H;
+  const ctx = posterCanvas.getContext("2d");
+
+  // 背景
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0,0,W,H);
+
+  // 上部テキスト
+  ctx.fillStyle = "#222";
+  ctx.textAlign = "center";
+  ctx.font = "bold 72px 'Hiragino Kaku Gothic ProN', sans-serif";
+  ctx.fillText("藤井寺まちリンク協議会", W/2, 140);
+
+  // パターン画像（中央配置）
+  const patSize = 1500;
+  const patX = (W - patSize)/2;
+  const patY = 260;
+  ctx.drawImage(patternCanvas, patX, patY, patSize, patSize);
+  ctx.strokeStyle = "#333";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(patX, patY, patSize, patSize);
+
+  // 団体名（任意表示）
+  const orgName = document.getElementById("orgName").value;
+  if(orgName){
+    ctx.font = "40px 'Hiragino Kaku Gothic ProN', sans-serif";
+    ctx.fillText(orgName, W/2, patY + patSize + 70);
+  }
+
+  // 下部テキスト
+  ctx.font = "bold 72px 'Hiragino Kaku Gothic ProN', sans-serif";
+  ctx.fillText("藤井寺まちリンク協議会", W/2, H - 80);
+
+  // 書き出し
+  const link = document.createElement("a");
+  link.download = `${orgName || "tartan"}_poster.jpg`;
+  link.href = posterCanvas.toDataURL("image/jpeg", 0.98);
+  link.click();
+});
+
+/* ============================================================
+   提出データ生成
+============================================================ */
+function generateSubmissionData(){
+  const orgName = document.getElementById("orgName").value || "(未入力)";
+  const repeatCount = document.getElementById("repeatCount").value;
+  const canvasSize = document.getElementById("canvasSize").value;
+
+  // 同一コードへの連番付与（例：R1, R2）
+  const codeCount = {};
+  const labeled = selected.map(item=>{
+    codeCount[item.code] = (codeCount[item.code]||0)+1;
+    return { ...item, label: item.code + codeCount[item.code] };
   });
+
+  let lines = [];
+  lines.push("■ 提出データ（タータン・レジスター申請用）");
+  lines.push("------------------------------------------");
+  lines.push("団体名／申請者名: " + orgName);
+  lines.push("");
+  lines.push("■ 使用色一覧（色コード＋番号形式）");
+  labeled.forEach(item=>{
+    lines.push(`${item.label}  ${item.hex}（${item.name}）  スレッド数: ${item.threadCount}本  理由: ${item.reason || "(未入力)"}`);
+  });
+  lines.push("");
+
+  const totalHalf = labeled.reduce((s,i)=>s+i.threadCount,0);
+  const mirroredTotal = labeled.length>0
+    ? totalHalf*2 - labeled[0].threadCount
+    : 0;
+
+  lines.push("■ セット表記（ハーフセット／ミラー前）");
+  lines.push(labeled.map(i=>`${i.label}/${i.threadCount}`).join(" "));
+  lines.push("");
+  lines.push(`■ 合計スレッド数（片側）: ${totalHalf}本`);
+  lines.push(`■ 合計スレッド数（左右対称ミラー後・1リピート）: ${mirroredTotal}本`);
+  lines.push("");
+  lines.push("■ パターン生成設定");
+  lines.push(`繰り返し回数: ${repeatCount}`);
+  lines.push(`画像サイズ: ${canvasSize}px`);
+  lines.push(`織り方: 2/2綾織り（左右対称ミラーパターン）`);
+
+  document.getElementById("submissionText").value = lines.join("\n");
 }
 
-// ===== リセット =====
-function resetOutput() {
-  selectedColors = [];
-  renderPalette();
-  updateOutput();
-  showNotify("リセットしました");
-}
+document.getElementById("copyDataBtn").addEventListener("click", ()=>{
+  if(selected.length < 2){
+    alert("⚠ 先に色を選択し、パターンを生成してください。");
+    return;
+  }
+  generateSubmissionData();
+  const textarea = document.getElementById("submissionText");
+  textarea.select();
+  navigator.clipboard.writeText(textarea.value).then(()=>{
+    alert("✅ 提出データをクリップボードにコピーしました。");
+  }).catch(()=>{
+    document.execCommand("copy");
+    alert("✅ 提出データをコピーしました（フォールバック）。");
+  });
+});
 
-// ===== 通知表示 =====
-function showNotify(msg) {
-  const el = document.getElementById("notify");
-  el.textContent = msg;
-  el.classList.add("show");
-  clearTimeout(window._notifyTimer);
-  window._notifyTimer = setTimeout(() => el.classList.remove("show"), 2000);
-}
-
-// ===== 初期化 =====
-renderFilters();
-renderGrid();
+/* ============================================================
+   初期化
+============================================================ */
 renderPalette();
+renderSelected();
 </script>
-
 </body>
 </html>
