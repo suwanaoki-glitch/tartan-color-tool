@@ -3,227 +3,599 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>タータンレジスター カラーツール｜藤井寺まちリンク協議会</title>
+<title>タータンカラー選定ツール｜藤井寺まちリンク協議会</title>
 <style>
-  :root{
-    --navy:#1b2a4a;
-    --navy2:#2a3f6a;
-    --gold:#c9a227;
-    --cream:#faf7f0;
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    background: linear-gradient(135deg,#f5f3ee,#e8e2d0);
+    margin: 0; padding: 20px; color: #2a2a2a;
   }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    background:var(--cream);
-    color:#2b2b2b;
+  header {
+    text-align: center; margin-bottom: 20px;
   }
-  .app-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-end;
-    flex-wrap:wrap;
-    gap:16px;
-    padding:20px 30px;
-    background:linear-gradient(135deg,var(--navy),var(--navy2));
-    color:#fff;
+  header h1 {
+    font-size: 28px; margin: 0; color: #14283C;
+    letter-spacing: 2px;
   }
-  .title-block h1{margin:0;font-size:22px;letter-spacing:1px;}
-  .subtitle{margin:6px 0 0;font-size:12px;opacity:.8;}
-  .org-block{text-align:right;}
-  .org-block label{display:block;font-size:11px;opacity:.8;margin-bottom:4px;}
-  #orgName{
-    font-size:30px;
-    background:transparent;
-    border:none;
-    border-bottom:2px solid var(--gold);
-    color:#fff;
-    text-align:right;
-    padding:2px 4px;
-    width:320px;
-    font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
-    outline:none;
-  }
-  #orgName::placeholder{color:rgba(255,255,255,.45);font-size:16px;}
+  header p { color: #6b4226; font-size: 13px; margin-top: 4px; }
 
-  .container{
-    display:grid;
-    grid-template-columns:360px 1fr;
-    gap:20px;
-    padding:20px;
-    max-width:1400px;
-    margin:0 auto;
+  .manual {
+    background: #fffdf8; border: 2px solid #c9972b;
+    border-radius: 10px; padding: 16px 20px; margin-bottom: 20px;
+    max-width: 1200px; margin-left:auto; margin-right:auto;
+    font-size: 13px; line-height: 1.8;
   }
-  @media(max-width:900px){ .container{grid-template-columns:1fr;} }
+  .manual h2 { margin:0 0 8px; font-size:15px; color:#8B2131; }
+  .manual ol { margin: 0; padding-left: 20px; }
 
-  .panel{
-    background:#fff;
-    border-radius:12px;
-    padding:18px;
-    box-shadow:0 2px 12px rgba(0,0,0,.08);
+  .container {
+    display: flex; gap: 20px; max-width: 1200px; margin: 0 auto;
+    flex-wrap: wrap;
   }
-  .palette-panel{max-height:calc(100vh - 110px);overflow-y:auto;}
+  .panel {
+    background: #fff; border-radius: 12px; padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .left-panel { flex: 1.2; min-width: 340px; }
+  .right-panel { flex: 1; min-width: 340px; }
 
-  /* ===== マニュアル ===== */
-  .manual-box{
-    background:linear-gradient(135deg,#fdfbf5,#f7f0e0);
-    border:1px solid #e6ddc8;
-    border-left:4px solid var(--gold);
-    border-radius:10px;
-    padding:14px 16px;
-    margin-bottom:18px;
+  .cat-filters {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;
   }
-  .manual-box h3{
-    margin:0 0 10px 0;
-    font-size:14px;
-    color:var(--navy);
-    display:flex;align-items:center;gap:6px;
+  .cat-btn {
+    padding: 6px 12px; border: 1px solid #999; border-radius: 20px;
+    background: #fff; cursor: pointer; font-size: 12px;
   }
-  .manual-box ol{
-    margin:0;padding-left:20px;
-    font-size:12.5px;line-height:1.9;color:#555;
-  }
-  .manual-box li strong{color:var(--navy);font-weight:700;}
-  .manual-box li::marker{color:var(--gold);font-weight:bold;}
+  .cat-btn.active { background: #14283C; color:#fff; border-color:#14283C; }
 
-  .palette-panel h2{font-size:15px;margin:0 0 10px 0;color:var(--navy);}
-
-  .filter-buttons{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
-  .filter-btn{
-    padding:4px 10px;border-radius:14px;
-    border:1px solid var(--navy);background:#fff;color:var(--navy);
-    font-size:12px;cursor:pointer;
+  .palette-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(90px,1fr));
+    gap: 8px; max-height: 480px; overflow-y: auto; padding: 4px;
   }
-  .filter-btn.active{background:var(--navy);color:#fff;}
-
-  .color-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(38px,1fr));
-    gap:6px;
+  .swatch {
+    border: 1px solid #ccc; border-radius: 8px; padding: 6px;
+    text-align: center; cursor: pointer; font-size: 10px;
+    background: #fafafa; transition: transform .1s;
   }
-  .swatch{
-    width:100%;aspect-ratio:1;border-radius:6px;
-    border:1px solid #ccc;cursor:pointer;
-    transition:transform .15s;
+  .swatch:hover { transform: scale(1.05); border-color:#14283C; }
+  .swatch.selected { border: 2px solid #8B2131; background:#fff0f0; }
+  .swatch .box {
+    width: 100%; height: 36px; border-radius: 4px; margin-bottom: 4px;
+    border: 1px solid rgba(0,0,0,0.15);
   }
-  .swatch:hover{transform:scale(1.18);box-shadow:0 2px 8px rgba(0,0,0,.3);z-index:2;position:relative;}
+  .swatch .name { font-weight:bold; }
+  .swatch .hex { color:#777; }
 
-  /* ===== 作業パネル ===== */
-  .work-panel h2{font-size:15px;margin:0 0 10px 0;color:var(--navy);}
-
-  .selected-list{margin-bottom:10px;}
-  .selected-row{
-    display:flex;align-items:center;gap:8px;
-    padding:6px 0;border-bottom:1px solid #eee;flex-wrap:wrap;
+  .name-input-wrap {
+    text-align: right; margin-bottom: 12px;
   }
-  .order-num{width:20px;font-weight:bold;color:var(--gold);font-size:13px;}
-  .swatch-sm{width:28px;height:28px;border-radius:4px;border:1px solid #ccc;flex-shrink:0;}
-  .c-name{width:110px;font-size:11.5px;color:#444;}
-  .selected-row input[type=number]{width:55px;padding:3px;font-size:12px;}
-  .selected-row input[type=text]{flex:1;min-width:90px;padding:4px;font-size:12px;}
-  .mini-btn{
-    border:none;background:#eee;border-radius:4px;cursor:pointer;
-    padding:4px 7px;font-size:12px;
+  .name-input-wrap label { font-size:12px; color:#6b4226; display:block; margin-bottom:4px;}
+  .name-input-wrap input {
+    font-size: 16px; padding: 8px 10px; border:1px solid #ccc;
+    border-radius: 6px; width: 100%; text-align:right;
   }
-  .mini-btn:hover{background:#ddd;}
-  .mini-btn.danger:hover{background:#f5c2c2;}
 
-  .empty-msg{color:#999;font-size:12px;padding:10px 0;}
-
-  .controls{
-    display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;
-    margin:16px 0;padding:14px;background:#f7f5ef;border-radius:8px;
+  .selected-list { max-height: 260px; overflow-y:auto; margin-bottom: 14px; }
+  .sel-item {
+    display: flex; align-items: center; gap: 6px; padding: 6px;
+    border-bottom: 1px solid #eee; font-size: 12px;
   }
-  .controls label{font-size:12px;color:#444;display:flex;flex-direction:column;gap:4px;}
-  .controls input{width:80px;padding:5px;border:1px solid #ccc;border-radius:4px;}
-  #generateBtn{
-    background:var(--navy);color:#fff;border:none;
-    padding:11px 26px;border-radius:6px;font-size:14px;
-    cursor:pointer;font-weight:bold;
+  .sel-item .sw { width: 28px; height:28px; border-radius:4px; border:1px solid #ccc; flex-shrink:0;}
+  .sel-item .info { flex: 1; min-width: 0; }
+  .sel-item .info .nm { font-weight:bold; font-size:12px; }
+  .sel-item .info .code { color:#999; font-size:10px; }
+  .sel-item input[type=number] { width: 48px; font-size:11px; padding:2px;}
+  .sel-item input[type=text] { width: 100%; font-size:11px; padding:3px; margin-top:2px; border:1px solid #ddd; border-radius:4px;}
+  .sel-item .btns button {
+    width:22px; height:22px; font-size:10px; border:none; border-radius:4px;
+    cursor:pointer; background:#eee; margin:1px;
   }
-  #generateBtn:hover{background:var(--navy2);}
+  .sel-item .btns button:hover { background:#ccc; }
+  .sel-item .remove { background:#f3cccc !important; }
 
-  .canvas-wrap{text-align:center;margin:18px 0;}
-  #tartanCanvas{max-width:100%;border:2px solid var(--navy);border-radius:4px;image-rendering:pixelated;}
+  .settings-row { display:flex; gap:10px; align-items:center; margin-bottom:10px; font-size:13px; flex-wrap:wrap;}
+  .settings-row label { white-space:nowrap; }
+  .settings-row input[type=number]{ width:60px; padding:4px; }
 
-  .action-buttons{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:18px;}
-  .action-btn{
-    padding:11px 20px;border:none;border-radius:6px;cursor:pointer;
-    font-size:13px;font-weight:bold;color:#fff;
+  canvas#preview {
+    width: 100%; max-width: 420px; aspect-ratio: 1/1;
+    border: 1px solid #ccc; border-radius: 8px; display:block; margin: 0 auto 12px;
   }
-  .btn-gold{background:var(--gold);}
-  .btn-gold:hover{background:#b3901f;}
-  .btn-navy{background:var(--navy);}
-  .btn-navy:hover{background:var(--navy2);}
 
-  .submission-box{margin-top:14px;}
-  .submission-box h3{font-size:13px;color:var(--navy);margin-bottom:6px;}
-  #submissionText{
-    width:100%;height:170px;font-size:12px;font-family:monospace;
-    padding:10px;border:1px solid #ccc;border-radius:6px;resize:vertical;
+  .action-btns { display:flex; flex-wrap:wrap; gap:8px; margin-bottom: 14px; }
+  .action-btns button {
+    flex: 1; min-width: 140px; padding: 10px; border: none; border-radius: 8px;
+    font-size: 13px; cursor: pointer; font-weight:bold; color:#fff;
   }
-  .copy-btn{
-    margin-top:8px;padding:8px 16px;border:1px solid var(--navy);
-    background:#fff;color:var(--navy);border-radius:6px;cursor:pointer;font-size:12px;
-  }
-  .copy-btn:hover{background:var(--navy);color:#fff;}
+  .btn-download { background:#14283C; }
+  .btn-poster { background:#8B2131; }
+  .btn-copy { background:#5C6D5E; }
 
-  .notice{
-    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-    background:var(--navy);color:#fff;padding:10px 22px;border-radius:20px;
-    font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;
+  textarea#submissionText {
+    width: 100%; height: 140px; font-size: 11px; padding: 8px;
+    border: 1px solid #ccc; border-radius: 6px; font-family: monospace;
   }
-  .notice.show{opacity:1;}
 
-  footer{text-align:center;font-size:11px;color:#999;padding:20px;}
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #333; color: #fff; padding: 10px 18px; border-radius: 20px;
+    font-size: 13px; opacity: 0; transition: opacity .3s; z-index: 999; pointer-events:none;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ---- Poster Modal ---- */
+  #posterOverlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7);
+    z-index: 1000; align-items:center; justify-content:center; flex-direction:column; gap:12px;
+    padding: 20px; overflow:auto;
+  }
+  #posterOverlay.show { display:flex; }
+  #posterCanvas { max-width: 90vw; max-height: 75vh; background:#fff; box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+  .poster-btns { display:flex; gap:10px; }
+  .poster-btns button {
+    padding: 10px 20px; border:none; border-radius:8px; cursor:pointer; font-weight:bold;
+  }
 </style>
 </head>
 <body>
 
-<header class="app-header">
-  <div class="title-block">
-    <h1>🏴 タータンレジスター カラーツール</h1>
-    <p class="subtitle">Tartan Register 137色リファレンス準拠｜2/2綾織り左右対称パターン生成</p>
-  </div>
-  <div class="org-block">
-    <label>団体名／お名前</label>
-    <input type="text" id="orgName" placeholder="藤井寺まちリンク協議会 様">
-  </div>
+<header>
+  <h1>タータンカラー選定ツール</h1>
+  <p>藤井寺まちリンク協議会 ｜ オリジナルタータン配色シミュレーター</p>
 </header>
 
-<main class="container">
+<div class="manual">
+  <h2>📖 使い方ガイド</h2>
+  <ol>
+    <li>下のカテゴリボタンで色のグループを絞り込み、気に入った色をクリックして選択します（最大8色）</li>
+    <li>右側の「選択中の色」で、順番の入れ替え・スレッド数（必ず偶数）・選んだ理由（20文字まで）を入力します</li>
+    <li>中央のプレビューで、本物のタータンと同じ「2/2綾織り・左右対称」パターンを確認できます</li>
+    <li>「繰り返し回数」を変えると柄の細かさを調整できます</li>
+    <li>右上に団体名・お名前を入力し、画像保存／ポスター作成／提出用コードのコピーができます</li>
+  </ol>
+</div>
 
-  <!-- ===== 左：カラーパレット ===== -->
-  <section class="panel palette-panel">
-    <div class="manual-box">
-      <h3>📝 使い方ガイド</h3>
-      <ol>
-        <li>まずは<strong>パレットから2色以上</strong>の色を選択します</li>
-        <li><strong>色の糸の数</strong>を微調整します</li>
-        <li><strong>「🎨 タータンを生成」</strong>を押すと、デザインが表示されます</li>
-        <li>色の<strong>順番の並び替え</strong>をしたり、<strong>糸の数を変更</strong>したりして、再度<strong>「タータンを生成」</strong>を押し、お気に入りのタータンを作ってください</li>
-        <li>それぞれの色の<strong>選定理由</strong>もご記入ください</li>
-        <li>完成したら、<strong>提出用のPDF（画像）データ</strong>と<strong>テキストデータ</strong>を出力してご用意ください</li>
-      </ol>
+<div class="container">
+
+  <!-- LEFT: Palette -->
+  <div class="panel left-panel">
+    <h3>🎨 色を選ぶ（137色）</h3>
+    <div class="cat-filters" id="catFilters"></div>
+    <div class="palette-grid" id="paletteGrid"></div>
+  </div>
+
+  <!-- RIGHT: Selection / Settings / Preview / Export -->
+  <div class="panel right-panel">
+    <div class="name-input-wrap">
+      <label>応募者名／団体名</label>
+      <input type="text" id="nameInput" placeholder="例：藤井寺○○町会">
     </div>
 
-    <h2>🎨 カラーパレット（クリックで選択）</h2>
-    <div class="filter-buttons" id="filterButtons"></div>
-    <div class="color-grid" id="colorGrid"></div>
-  </section>
+    <h3>✅ 選択中の色（<span id="selCount">0</span>/8）</h3>
+    <div class="selected-list" id="selectedList"></div>
 
-  <!-- ===== 右：作業パネル ===== -->
-  <section class="panel work-panel">
-    <h2>✅ 選択中の色（並び替え・糸数・理由を編集できます）</h2>
-    <div class="selected-list" id="selectedList">
-      <div class="empty-msg">左のパレットから2色以上選んでください</div>
-    </div>
-
-    <div class="controls">
-      <label>繰り返し回数
+    <div class="settings-row">
+      <label>繰り返し回数:
         <input type="number" id="repeatCount" value="6" min="1" max="20">
       </label>
-      <label>サイズ (px)
-        <input type="number" id="patternSize" value="1600" min="200" max="4000" step="100">
-      </label>
-      <button id="generateBtn" onclick="generateTartan
+    </div>
+
+    <canvas id="preview" width="600" height="600"></canvas>
+
+    <div class="action-btns">
+      <button class="btn-download" onclick="downloadHQ()">⬇ 高画質で保存</button>
+      <button class="btn-poster" onclick="openPoster()">🖼 ポスター作成</button>
+    </div>
+
+    <h3>📝 提出用コード</h3>
+    <textarea id="submissionText" readonly></textarea>
+    <div class="action-btns">
+      <button class="btn-copy" onclick="copySubmission()">📋 提出用コードをコピー</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Poster Modal -->
+<div id="posterOverlay">
+  <canvas id="posterCanvas"></canvas>
+  <div class="poster-btns">
+    <button style="background:#14283C;color:#fff;" onclick="downloadPoster()">⬇ ポスターを保存</button>
+    <button style="background:#888;color:#fff;" onclick="closePoster()">閉じる</button>
+  </div>
+</div>
+
+<script>
+/* ===================== 137色データ ===================== */
+const CATS = [
+  ["red","赤"],["green","緑"],["blue","青"],["yellow","黄"],["black","黒"],
+  ["white","白"],["grey","グレー"],["purple","紫"],["orange","オレンジ"],["brown","茶"]
+];
+const CODE_PREFIX = { red:"R", green:"G", blue:"B", yellow:"Y", black:"K", white:"W", grey:"S", purple:"P", orange:"O", brown:"N" };
+
+const RAW = {
+  red: [["Red","#8B2131"],["Dark Red","#6D1A24"],["Bright Red","#A3252E"],["Old Red","#9C3A3A"],
+    ["Lovat Red","#8E3B3B"],["Wine Red","#722F37"],["Cardinal Red","#C41E3A"],["Crimson","#990024"],
+    ["Blood Red","#5C0A0E"],["Claret","#7F1734"],["Madder Red","#A52A2A"],["Brick Red","#9E4229"],
+    ["Scarlet","#D22B2B"],["Deep Red","#5C0E14"],["Rose Red","#B7410E"],["Dull Red","#884444"]],
+  green: [["Green","#2D5A27"],["Dark Green","#1B3A1E"],["Bottle Green","#144A32"],["Hunting Green","#28433E"],
+    ["Lovat Green","#5C6D5E"],["Forest Green","#1C3B2A"],["Moss Green","#4A5D32"],["Bright Green","#3E8E41"],
+    ["Olive Green","#556B2F"],["Sea Green","#2E8B74"],["Racing Green","#0B3D2E"],["Emerald Green","#0F6B3E"],
+    ["Pine Green","#01796F"],["Sage Green","#87A96B"],["Dark Bottle Green","#0D2818"],["Dull Green","#3F5443"]],
+  blue: [["Blue","#1B3A6B"],["Dark Blue","#14234A"],["Navy Blue","#10192E"],["Royal Blue","#1E3A8A"],
+    ["Sky Blue","#4A90C2"],["Dress Blue","#233E66"],["Lovat Blue","#44637A"],["Air Force Blue","#3B5B82"],
+    ["Steel Blue","#3A5F77"],["Denim Blue","#2C4870"],["Midnight Blue","#0B1C3A"],["Ancient Blue","#5A7FA6"],
+    ["Bright Blue","#2255A4"],["Teal Blue","#1F6F78"],["Powder Blue","#9BC4CB"],["Dull Blue","#41678A"]],
+  yellow: [["Yellow","#D9A441"],["Gold","#C9972B"],["Old Gold","#B8860B"],["Dark Yellow","#AD8A3A"],
+    ["Bright Yellow","#E8B72E"],["Primrose Yellow","#E6C65C"],["Straw Yellow","#D8C178"],["Amber","#D99A2B"],
+    ["Mustard","#C8A951"],["Lemon Yellow","#E8D56A"],["Saffron","#D9972E"],["Buff","#D9B384"],
+    ["Corn Yellow","#E3C16F"],["Honey Gold","#CBA135"],["Dull Gold","#B99A52"]],
+  black: [["Black","#1B1B1B"],["Dark Black","#0D0D0D"],["Jet Black","#111111"],["Soft Black","#2A2A2A"],
+    ["Charcoal Black","#222222"],["Ash Black","#292929"],["Lovat Black","#302E2C"],["Deep Black","#141414"],
+    ["Raven Black","#1A1A1A"],["Night Black","#0A0A0A"],["Dull Black","#3A3A3A"]],
+  white: [["White","#F5F3EE"],["Off White","#EDE8DD"],["Ancient White","#E8E2D0"],["Cream White","#F0E9D8"],
+    ["Ivory","#FFF8E7"],["Bright White","#FFFFFF"],["Natural White","#F2EEE4"],["Pearl White","#EDEAE0"],
+    ["Snow White","#FAFAFA"],["Antique White","#F3E9D2"],["Dull White","#DAD6C8"]],
+  grey: [["Grey","#8A8A8A"],["Dark Grey","#14283C"],["Light Grey","#C7C7C7"],["Steel Grey","#71797E"],
+    ["Ash Grey","#B2BEB5"],["Silver Grey","#C0C0C0"],["Charcoal Grey","#36454F"],["Lovat Grey","#8C8C7A"],
+    ["Slate Grey","#708090"],["Stone Grey","#928E85"],["Pewter Grey","#96A8A1"],["Mid Grey","#A9A9A9"],
+    ["Dull Grey","#9A9A8E"]],
+  purple: [["Purple","#5B2A6E"],["Dark Purple","#3B1F4A"],["Heather Purple","#8266A0"],["Lovat Purple","#6C5876"],
+    ["Royal Purple","#6A0DAD"],["Bright Purple","#9B59B6"],["Lilac","#B695C0"],["Violet","#7F00FF"],
+    ["Thistle Purple","#5F4B8B"],["Plum","#8E4585"],["Aubergine","#3B0A45"],["Amethyst","#9966CC"],
+    ["Dull Purple","#6F5873"]],
+  orange: [["Orange","#C8601E"],["Dark Orange","#9A4A1A"],["Bright Orange","#E07B1E"],["Burnt Orange","#A64B2A"],
+    ["Rust","#B7410E"],["Tangerine","#E8742C"],["Copper","#B5672B"],["Amber Orange","#D9821E"],
+    ["Terracotta","#C06030"],["Ochre","#CC7722"],["Dull Orange","#B06A3A"]],
+  brown: [["Brown","#6B4226"],["Dark Brown","#4A2E1E"],["Lovat Brown","#6E5B4A"],["Camel Brown","#8A6642"],
+    ["Chestnut Brown","#7B3F2B"],["Mahogany","#6E2C1E"],["Tan","#B08457"],["Sand Brown","#C2A176"],
+    ["Coffee Brown","#4B3621"],["Walnut Brown","#5C3A21"],["Fawn Brown","#A3794C"],["Umber","#6B4423"],
+    ["Taupe","#8B7355"],["Bark Brown","#5A4632"],["Dull Brown","#5E4A3A"]]
+};
+
+const COLORS = [];
+Object.keys(RAW).forEach(cat=>{
+  RAW[cat].forEach((item,i)=>{
+    COLORS.push({ name:item[0], hex:item[1], cat:cat, code: CODE_PREFIX[cat]+(i+1) });
+  });
+});
+
+/* ===================== 状態 ===================== */
+let currentCat = "all";
+let selected = []; // {name,hex,code,cat,count,reason}
+
+/* ===================== 初期化 ===================== */
+function init(){
+  const catFilters = document.getElementById("catFilters");
+  const allBtn = document.createElement("button");
+  allBtn.className = "cat-btn active";
+  allBtn.textContent = "すべて";
+  allBtn.onclick = ()=>setCat("all", allBtn);
+  catFilters.appendChild(allBtn);
+
+  CATS.forEach(([key,label])=>{
+    const b = document.createElement("button");
+    b.className = "cat-btn";
+    b.textContent = label;
+    b.onclick = ()=>setCat(key, b);
+    catFilters.appendChild(b);
+  });
+
+  renderPalette();
+  renderSelected();
+  updatePattern();
+
+  document.getElementById("repeatCount").addEventListener("input", updatePattern);
+  document.getElementById("nameInput").addEventListener("input", updateSubmissionText);
+}
+
+function setCat(key, btn){
+  currentCat = key;
+  document.querySelectorAll(".cat-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  renderPalette();
+}
+
+function renderPalette(){
+  const grid = document.getElementById("paletteGrid");
+  grid.innerHTML = "";
+  const list = currentCat === "all" ? COLORS : COLORS.filter(c=>c.cat===currentCat);
+  list.forEach(c=>{
+    const div = document.createElement("div");
+    div.className = "swatch" + (selected.find(s=>s.hex===c.hex && s.name===c.name) ? " selected" : "");
+    div.innerHTML = `<div class="box" style="background:${c.hex}"></div>
+      <div class="name">${c.name}</div><div class="hex">${c.hex}</div>`;
+    div.onclick = ()=>toggleColor(c);
+    grid.appendChild(div);
+  });
+}
+
+function toggleColor(c){
+  const idx = selected.findIndex(s=>s.hex===c.hex && s.name===c.name);
+  if(idx >= 0){
+    selected.splice(idx,1);
+  } else {
+    if(selected.length >= 8){ showToast("色は最大8色までです"); return; }
+    selected.push({ name:c.name, hex:c.hex, code:c.code, cat:c.cat, count:6, reason:"" });
+  }
+  renderPalette();
+  renderSelected();
+  updatePattern();
+}
+
+function renderSelected(){
+  document.getElementById("selCount").textContent = selected.length;
+  const list = document.getElementById("selectedList");
+  list.innerHTML = "";
+  selected.forEach((c, i)=>{
+    const row = document.createElement("div");
+    row.className = "sel-item";
+    row.innerHTML = `
+      <div class="sw" style="background:${c.hex}"></div>
+      <div class="info">
+        <div class="nm">${c.name} <span class="code">[${c.code}]</span></div>
+        <input type="number" min="2" step="2" value="${c.count}" onchange="setCount(${i}, this.value)">本
+        <input type="text" maxlength="20" placeholder="選んだ理由（20文字まで）" value="${c.reason}" oninput="setReason(${i}, this.value)">
+      </div>
+      <div class="btns">
+        <button onclick="moveItem(${i},-1)">↑</button>
+        <button onclick="moveItem(${i},1)">↓</button>
+        <button class="remove" onclick="removeItem(${i})">✕</button>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function setCount(i, val){
+  let n = parseInt(val) || 2;
+  if(n % 2 !== 0){
+    n = n + 1;
+    showToast("スレッド数は必ず2の倍数です（自動調整しました）");
+  }
+  if(n < 2) n = 2;
+  selected[i].count = n;
+  renderSelected();
+  updatePattern();
+}
+function setReason(i, val){
+  selected[i].reason = val.slice(0,20);
+  updateSubmissionText();
+}
+function moveItem(i, dir){
+  const j = i + dir;
+  if(j < 0 || j >= selected.length) return;
+  [selected[i], selected[j]] = [selected[j], selected[i]];
+  renderSelected();
+  updatePattern();
+}
+function removeItem(i){
+  selected.splice(i,1);
+  renderPalette();
+  renderSelected();
+  updatePattern();
+}
+
+/* ===================== タータン生成（2/2綾織り・左右対称） ===================== */
+function buildThreadUnit(){
+  if(selected.length === 0) return null;
+  let half = [];
+  selected.forEach(c=>{ for(let k=0;k<c.count;k++) half.push(c.hex); });
+  if(half.length === 1) return half;
+  const mirrorPart = half.slice(1, -1).reverse();
+  return half.concat(mirrorPart);
+}
+
+function shadeColor(hex, factor){
+  const r = Math.min(255, Math.max(0, parseInt(hex.substr(1,2),16) * factor));
+  const g = Math.min(255, Math.max(0, parseInt(hex.substr(3,2),16) * factor));
+  const b = Math.min(255, Math.max(0, parseInt(hex.substr(5,2),16) * factor));
+  return `rgb(${r|0},${g|0},${b|0})`;
+}
+
+function renderTartan(canvas, unit, size, repeatCount){
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if(!unit){
+    ctx.fillStyle = "#eee";
+    ctx.fillRect(0,0,size,size);
+    ctx.fillStyle = "#999";
+    ctx.font = "16px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("色を選択してください", size/2, size/2);
+    return;
+  }
+  const threadPx = Math.max(1, size / (unit.length * repeatCount));
+  const cells = Math.ceil(size / threadPx) + 2;
+  for(let i=0;i<cells;i++){
+    for(let j=0;j<cells;j++){
+      const mod = (i + j) % 4;
+      let hex, factor;
+      if(mod === 0){ hex = unit[i % unit.length]; factor = 1.0; }
+      else if(mod === 1){ hex = unit[i % unit.length]; factor = 0.80; }
+      else if(mod === 2){ hex = unit[j % unit.length]; factor = 1.0; }
+      else { hex = unit[j % unit.length]; factor = 0.80; }
+      ctx.fillStyle = shadeColor(hex, factor);
+      ctx.fillRect(i*threadPx, j*threadPx, threadPx+0.6, threadPx+0.6);
+    }
+  }
+}
+
+function updatePattern(){
+  const unit = buildThreadUnit();
+  const repeatCount = parseInt(document.getElementById("repeatCount").value) || 6;
+  const canvas = document.getElementById("preview");
+  renderTartan(canvas, unit, 600, repeatCount);
+  updateSubmissionText();
+}
+
+/* ===================== 高画質保存 ===================== */
+function downloadHQ(){
+  if(selected.length === 0){ showToast("色を選択してください"); return; }
+  const unit = buildThreadUnit();
+  const repeatCount = parseInt(document.getElementById("repeatCount").value) || 6;
+  const tmp = document.createElement("canvas");
+  renderTartan(tmp, unit, 1600, repeatCount);
+  const link = document.createElement("a");
+  link.download = "tartan_fujiidera.jpg";
+  link.href = tmp.toDataURL("image/jpeg", 0.95);
+  link.click();
+  showToast("高画質画像を保存しました");
+}
+
+/* ===================== 提出用コード ===================== */
+function updateSubmissionText(){
+  const name = document.getElementById("nameInput").value || "(未入力)";
+  const repeatCount = document.getElementById("repeatCount").value;
+  let lines = [];
+  lines.push("【タータンカラー登録申請】");
+  lines.push("団体名／応募者名：" + name);
+  lines.push("");
+  lines.push("■ 使用色一覧");
+  selected.forEach((c,i)=>{
+    lines.push(`${i+1}. ${c.code}　${c.name}（${c.hex}）　${c.count}本　理由：${c.reason || "(未記入)"}`);
+  });
+  lines.push("");
+  lines.push("繰り返し回数：" + repeatCount);
+  document.getElementById("submissionText").value = lines.join("\n");
+}
+
+function copySubmission(){
+  const ta = document.getElementById("submissionText");
+  ta.select();
+  navigator.clipboard.writeText(ta.value).then(()=>{
+    showToast("提出用コードをコピーしました");
+  }).catch(()=>{
+    document.execCommand("copy");
+    showToast("提出用コードをコピーしました");
+  });
+}
+
+/* ===================== ポスター作成 ===================== */
+function openPoster(){
+  if(selected.length === 0){ showToast("色を選択してください"); return; }
+  const overlay = document.getElementById("posterOverlay");
+  const canvas = document.getElementById("posterCanvas");
+  drawPoster(canvas);
+  overlay.classList.add("show");
+}
+function closePoster(){
+  document.getElementById("posterOverlay").classList.remove("show");
+}
+
+function drawPoster(canvas){
+  const W = 900;
+  const colorRows = Math.min(selected.length, 6);
+  const H = 1300 + colorRows * 36;
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d");
+
+  // 背景
+  ctx.fillStyle = "#fdfcf7";
+  ctx.fillRect(0,0,W,H);
+
+  // 装飾枠
+  ctx.strokeStyle = "#8B2131";
+  ctx.lineWidth = 6;
+  ctx.strokeRect(20,20,W-40,H-40);
+  ctx.strokeStyle = "#c9972b";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(32,32,W-64,H-64);
+
+  // 上部団体名
+  ctx.fillStyle = "#14283C";
+  ctx.font = "bold 20px serif";
+  ctx.textAlign = "center";
+  ctx.fillText("藤井寺まちリンク協議会", W/2, 70);
+
+  // 名前／団体名（右上・大きめ）
+  const name = document.getElementById("nameInput").value || "";
+  ctx.fillStyle = "#333";
+  ctx.font = "bold 30px serif";
+  ctx.textAlign = "right";
+  ctx.fillText(name, W - 70, 130);
+
+  ctx.font = "13px sans-serif";
+  ctx.fillStyle = "#999";
+  ctx.fillText("応募者名／団体名", W - 70, 150);
+
+  // タイトル
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#8B2131";
+  ctx.font = "bold 26px serif";
+  ctx.fillText("オリジナルタータンデザイン", W/2, 200);
+
+  // パターン画像（760px固定）
+  const unit = buildThreadUnit();
+  const repeatCount = parseInt(document.getElementById("repeatCount").value) || 6;
+  const tmp = document.createElement("canvas");
+  renderTartan(tmp, unit, 760, repeatCount);
+  const px = (W - 760) / 2;
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.3)";
+  ctx.shadowBlur = 20;
+  ctx.drawImage(tmp, px, 240);
+  ctx.restore();
+  ctx.strokeStyle = "#ccc";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(px, 240, 760, 760);
+
+  // 色リスト
+  let listY = 240 + 760 + 50;
+  ctx.textAlign = "left";
+  ctx.font = "bold 18px sans-serif";
+  ctx.fillStyle = "#14283C";
+  ctx.fillText("■ 選んだ色とその理由", 70, listY);
+  listY += 20;
+
+  selected.slice(0,6).forEach(c=>{
+    listY += 36;
+    ctx.fillStyle = c.hex;
+    ctx.fillRect(70, listY-20, 30, 24);
+    ctx.strokeStyle = "#999";
+    ctx.strokeRect(70, listY-20, 30, 24);
+
+    ctx.fillStyle = "#333";
+    ctx.font = "bold 15px sans-serif";
+    ctx.fillText(`${c.name}（${c.hex}）`, 112, listY-2);
+
+    ctx.font = "13px sans-serif";
+    ctx.fillStyle = "#666";
+    ctx.fillText(c.reason ? `理由：${c.reason}` : "", 112, listY+16);
+  });
+
+  // 下部団体名
+  ctx.textAlign = "center";
+  ctx.font = "14px serif";
+  ctx.fillStyle = "#14283C";
+  ctx.fillText("藤井寺まちリンク協議会", W/2, H - 50);
+}
+
+function downloadPoster(){
+  const canvas = document.getElementById("posterCanvas");
+  const link = document.createElement("a");
+  link.download = "tartan_poster_fujiidera.jpg";
+  link.href = canvas.toDataURL("image/jpeg", 0.95);
+  link.click();
+  showToast("ポスターを保存しました");
+}
+
+/* ===================== トースト通知 ===================== */
+let toastTimer = null;
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove("show"), 2200);
+}
+
+init();
+</script>
+</body>
+</html>
