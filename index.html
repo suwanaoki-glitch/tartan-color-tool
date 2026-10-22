@@ -103,6 +103,46 @@ textarea#submissionData{width:100%;min-height:220px;font-family:"Courier New",mo
 .submit-card p.perk{font-size:10.5px;padding:7px 8px}
 .submit-card .go{font-size:11.5px;padding:11px 4px;letter-spacing:0}
 }
+
+/* ===== デザイン強化 ===== */
+body{background:
+ repeating-linear-gradient(90deg,rgba(201,162,39,.05) 0 2px,transparent 2px 56px),
+ repeating-linear-gradient(0deg,rgba(13,27,62,.035) 0 2px,transparent 2px 56px),
+ radial-gradient(1200px 500px at 50% -120px,#fffdf6 0%,transparent 70%),var(--bg);background-attachment:fixed}
+header{padding:46px 20px 40px;overflow:hidden}
+header::before{opacity:1;background:
+ repeating-linear-gradient(90deg,rgba(139,26,43,.30) 0 18px,transparent 18px 150px),
+ repeating-linear-gradient(0deg,rgba(139,26,43,.22) 0 18px,transparent 18px 150px),
+ repeating-linear-gradient(90deg,rgba(201,162,39,.22) 0 3px,transparent 3px 30px),
+ repeating-linear-gradient(0deg,rgba(201,162,39,.16) 0 3px,transparent 3px 30px),
+ repeating-linear-gradient(45deg,rgba(255,255,255,.045) 0 2px,transparent 2px 5px)}
+header h1{background:linear-gradient(180deg,#fff3c4 0%,var(--gold-light) 55%,#b8921c 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 3px 10px rgba(0,0,0,.45))}
+header .sub{letter-spacing:9px;color:#dfe3ef}
+.box ol{list-style:none;counter-reset:st;padding-left:0}
+.box ol li{counter-increment:st;position:relative;padding:3px 0 3px 38px;margin-bottom:4px}
+.box ol li::before{content:counter(st);position:absolute;left:0;top:4px;width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold-light);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(13,27,62,.25)}
+.box{animation:rise .6s cubic-bezier(.2,.7,.2,1) both}
+.left-panel .box:nth-child(2){animation-delay:.08s}.left-panel .box:nth-child(3){animation-delay:.16s}
+.result-panel{animation:rise .6s .1s cubic-bezier(.2,.7,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.swatch-wrap:hover .swatch{box-shadow:0 0 0 1px rgba(0,0,0,.12),0 10px 18px rgba(0,0,0,.22)}
+.palette{background:linear-gradient(180deg,#fbf9f2,#f6f2e6);box-shadow:inset 0 2px 8px rgba(13,27,62,.05)}
+.btn-sub{position:relative;overflow:hidden}
+.btn-sub::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);transition:left .6s}
+.btn-sub:hover::after{left:130%}
+#createPosterBtn{box-shadow:0 8px 20px rgba(13,27,62,.28)}
+canvas#tartanCanvas{border-radius:6px;box-shadow:0 20px 44px rgba(13,27,62,.22),0 0 0 1px rgba(201,162,39,.35)}
+.preview-label{display:flex;align-items:center;justify-content:center;gap:14px}
+.preview-label::before,.preview-label::after{content:"";height:1px;width:46px;background:linear-gradient(90deg,transparent,var(--gold))}
+.preview-label::after{transform:scaleX(-1)}
+.selected-item{box-shadow:0 2px 6px rgba(13,27,62,.04)}
+.top-bar{box-shadow:0 10px 24px rgba(13,27,62,.05)}
+@media(max-width:640px){
+header{padding:30px 14px 26px}
+header h1{font-size:19px;letter-spacing:3px}
+header .sub{font-size:9px;letter-spacing:5px}
+.preview-label::before,.preview-label::after{width:24px}
+}
 </style>
 </head>
 <body>
@@ -310,6 +350,7 @@ function renderSelectedList() {
   selectedColors.forEach((c, idx) => {
     const item = document.createElement('div');
     item.className = 'selected-item';
+    item.style.borderLeftColor = c.hex;
     item.innerHTML = `
       <div class="sw" style="background:${c.hex}"></div>
       <div class="info">
