@@ -1,8 +1,15 @@
 <!DOCTYPE html>
+<!--
+  藤井寺タータンエディター
+  Copyright (c) 2026 藤井寺まちリンク協議会 All Rights Reserved.
+  本システムのプログラム・デザイン・画面構成の無断複製、転載、改変、再配布、
+  および本来の目的以外への転用を禁じます。
+-->
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="copyright" content="藤井寺まちリンク協議会">
 <title>藤井寺タータンエディター</title>
 <style>
 :root{--navy:#0d1b3e;--navy2:#1c2f5e;--gold:#c9a227;--gold-light:#e3c25f;--bg:#f4f1e8;--text:#27272a;--error:#c0392b;--line:#e6e1d2;--shadow:0 2px 6px rgba(13,27,62,.05),0 12px 32px rgba(13,27,62,.07)}
@@ -143,6 +150,39 @@ header h1{font-size:19px;letter-spacing:3px}
 header .sub{font-size:9px;letter-spacing:5px}
 .preview-label::before,.preview-label::after{width:24px}
 }
+
+/* 同じ色の複数選択：回数バッジと「−」 */
+.swatch-wrap{position:relative}
+.swatch-wrap .badge{position:absolute;top:-7px;right:-5px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--navy);color:var(--gold-light);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(13,27,62,.35);pointer-events:none}
+.swatch-wrap .minus{position:absolute;top:-7px;left:-5px;width:22px;height:22px;padding:0;border-radius:50%;background:#fff;color:var(--error);border:1px solid var(--error);font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.2);font-family:inherit}
+.swatch-wrap .minus:hover{background:var(--error);color:#fff}
+
+/* ===== 色を選びながらプレビューを見られるレイアウト ===== */
+.left-panel{flex:1.1 1 440px}
+.right-panel{flex:1 1 440px}
+.after{max-width:1440px;margin:0 auto;padding:0 28px 28px;display:grid;grid-template-columns:1fr 1fr;gap:0 28px;align-items:start}
+.after .poster-box{grid-column:1/-1}
+.after .poster-box .export-section{justify-content:center}
+.after .poster-box .btn-sub{flex:0 1 360px}
+#posterPreview{max-width:min(100%,900px)}
+@media(min-width:1000px){
+.right-panel .result-panel{position:sticky;top:14px;padding:18px 22px 22px}
+.right-panel canvas#tartanCanvas{height:min(640px,calc(100vh - 240px));width:auto;max-width:100%;object-fit:contain}
+.right-panel .export-section{margin-top:16px}
+.right-panel .preview-label{margin-bottom:12px}
+}
+@media(max-width:1000px){.after{grid-template-columns:1fr}}
+@media(max-width:640px){.after{padding:0 14px 14px}}
+
+/* ===== フッター（利用上の注意） ===== */
+.site-foot{max-width:900px;margin:8px auto 0;padding:30px 24px 44px;text-align:center;color:#6b6b72}
+.site-foot .foot-mark{height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);position:relative;margin-bottom:22px}
+.site-foot .foot-mark::after{content:"";position:absolute;left:50%;top:-4px;width:8px;height:8px;background:var(--gold);transform:translateX(-50%) rotate(45deg)}
+.site-foot .foot-title{margin:0 0 8px;font-size:12px;letter-spacing:4px;color:var(--navy);font-weight:700}
+.site-foot .foot-text{margin:0 0 12px;font-size:11.5px;line-height:1.9}
+.site-foot .foot-copy{margin:0;font-size:11px;letter-spacing:1px;font-family:"Times New Roman",serif;color:#8a8a8a}
+@media(max-width:640px){.site-foot{padding:22px 16px 32px}.site-foot .foot-text{font-size:11px}}
+.selected-item .reason:disabled{background:#f1eee3;color:#999;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -168,7 +208,7 @@ header .sub{font-size:9px;letter-spacing:5px}
 <div class="box">
 <h2>使い方</h2>
 <ol>
-<li>下のパレットから2色以上を選択 → 右側のプレビューが自動で更新されます。</li>
+<li>下のパレットから2色以上を選択（同じ色は何回でも選べます） → 右側のプレビューが自動で更新されます。</li>
 <li>糸の本数や並び順を変更すると、その都度自動でプレビューが更新されます。</li>
 <li>上部の「応募者名」「コンセプト・想い」を入力します。</li>
 <li>各色の選定理由（全色）を入力します。</li>
@@ -203,13 +243,19 @@ header .sub{font-size:9px;letter-spacing:5px}
 <button class="btn-sub" id="downloadImgBtn">画像を保存（高画質）</button>
 <button class="btn-sub" id="createPosterBtn">提出用データ作成</button>
 </div>
+</div>
+</div>
+</div>
+
+<div class="after">
+<div class="box poster-box" id="posterBox" style="display:none;">
+<h2>提出用画像</h2>
 <img id="posterPreview" style="display:none;" alt="提出用画像プレビュー">
 <div class="export-section" id="posterDownloadRow" style="display:none;">
 <button class="btn-sub" id="downloadPosterBtn">提出用画像をダウンロード</button>
 </div>
 </div>
-
-<div class="box" style="margin-top:20px;">
+<div class="box">
 <h2>提出用テキストデータ</h2>
 <textarea id="submissionData" readonly></textarea>
 <div class="export-section">
@@ -236,7 +282,13 @@ header .sub{font-size:9px;letter-spacing:5px}
 </div>
 </div>
 </div>
-</div>
+
+<footer class="site-foot">
+<div class="foot-mark"></div>
+<p class="foot-title">ご利用にあたって</p>
+<p class="foot-text">本システム（藤井寺タータンエディター）は、藤井寺まちリンク協議会のタータン募集のために制作したものです。プログラム・デザイン・画面構成の複製、転載、改変、再配布、および他の事業・催し・サービスへの転用は、固くお断りいたします。</p>
+<p class="foot-copy">© 2026 藤井寺まちリンク協議会 All Rights Reserved.</p>
+</footer>
 
 <script>
 /* =========================================================
@@ -290,6 +342,20 @@ function appendSama(name) {
   return /(様|殿)$/.test(t) ? t : t + ' 様';
 }
 
+/* 同じ色は1色にまとめる（最初に選んだ順・最初の理由を採用。糸数は選んだ順に並べる） */
+function groupColors() {
+  const groups = [];
+  selectedColors.forEach(c => {
+    const g = groups.find(x => x.id === c.id);
+    if (g) {
+      g.threadsList.push(c.threads);
+    } else {
+      groups.push({ id: c.id, name: c.name, hex: c.hex, reason: c.reason, threadsList: [c.threads] });
+    }
+  });
+  return groups;
+}
+
 /* 初期化 */
 function init() {
   renderCategoryFilter();
@@ -323,21 +389,31 @@ function renderPalette() {
   wrap.innerHTML = '';
   const list = currentCategory === 'all' ? TARTAN_COLORS : TARTAN_COLORS.filter(c => c.cat === currentCategory);
   list.forEach(c => {
-    const isSelected = selectedColors.some(s => s.id === c.id);
+    const count = selectedColors.filter(s => s.id === c.id).length;
     const item = document.createElement('div');
     item.className = 'swatch-wrap';
-    item.innerHTML = `<div class="swatch ${isSelected ? 'selected' : ''}" style="background:${c.hex}"></div><div class="swatch-name">${c.id}<br>${c.name}</div>`;
-    item.addEventListener('click', () => toggleColor(c));
+    item.innerHTML = `<div class="swatch ${count > 0 ? 'selected' : ''}" style="background:${c.hex}"></div>`
+      + (count > 0 ? `<span class="badge">×${count}</span><button type="button" class="minus" title="1つ減らす">−</button>` : '')
+      + `<div class="swatch-name">${c.id}<br>${c.name}</div>`;
+    item.addEventListener('click', () => addColor(c));
+    const minus = item.querySelector('.minus');
+    if (minus) minus.addEventListener('click', e => { e.stopPropagation(); removeLastOfColor(c.id); });
     wrap.appendChild(item);
   });
 }
 
-function toggleColor(c) {
-  const idx = selectedColors.findIndex(s => s.id === c.id);
-  if (idx >= 0) {
-    selectedColors.splice(idx, 1);
-  } else {
-    selectedColors.push({ id: c.id, name: c.name, hex: c.hex, threads: 6, reason: '' });
+/* 同じ色も何回でも追加できる */
+function addColor(c) {
+  selectedColors.push({ id: c.id, name: c.name, hex: c.hex, threads: 6, reason: '' });
+  renderPalette();
+  renderSelectedList();
+  renderPreview();
+}
+
+/* パレットの「−」：その色の最後の1つを外す */
+function removeLastOfColor(id) {
+  for (let i = selectedColors.length - 1; i >= 0; i--) {
+    if (selectedColors[i].id === id) { selectedColors.splice(i, 1); break; }
   }
   renderPalette();
   renderSelectedList();
@@ -351,12 +427,13 @@ function renderSelectedList() {
     const item = document.createElement('div');
     item.className = 'selected-item';
     item.style.borderLeftColor = c.hex;
+    const dup = selectedColors.findIndex(s => s.id === c.id) < idx;
     item.innerHTML = `
       <div class="sw" style="background:${c.hex}"></div>
       <div class="info">
         <div class="name">${c.id} ${c.name}</div>
         <div class="hex">${c.hex}</div>
-        <input type="text" class="reason" data-idx="${idx}" maxlength="20" placeholder="選定理由（20文字以内）※必須" value="${escapeAttr(c.reason)}">
+        <input type="text" class="reason" data-idx="${idx}" maxlength="20" ${dup ? 'disabled placeholder="同じ色は1つ目の理由を使います"' : 'placeholder="選定理由（20文字以内）※必須"'} value="${dup ? '' : escapeAttr(c.reason)}">
         <div class="meta-row">
           <label style="font-size:11px;color:#888;">糸の本数</label>
           <input type="number" class="thread-input" data-idx="${idx}" value="${c.threads}" min="2" step="2">
@@ -450,6 +527,7 @@ function validateRequiredFields() {
 
   const reasonInputs = document.querySelectorAll('.selected-item .reason');
   selectedColors.forEach((c, idx) => {
+    if (selectedColors.findIndex(s => s.id === c.id) < idx) return;
     const input = reasonInputs[idx];
     if (!c.reason || !c.reason.trim()) {
       if (input) input.classList.add('error');
@@ -551,7 +629,8 @@ function onCreatePoster() {
   const conceptLines = wrapText(tmpCtx, concept, posterWidth - margin * 2, conceptFontSize);
 
   // 色一覧：1〜2色は1列、3色以上は2列
-  const count = selectedColors.length;
+  const groups = groupColors();
+  const count = groups.length;
   const cols = count <= 2 ? 1 : 2;
   const colGap = 26;
   const colWidth = cols === 1 ? posterWidth - margin * 2 : (posterWidth - margin * 2 - colGap) / cols;
@@ -660,7 +739,7 @@ function onCreatePoster() {
   const listStartY = y;
   const textAreaWidth = colWidth - swSize - 16;
 
-  selectedColors.forEach((c, i) => {
+  groups.forEach((c, i) => {
     const col = i % cols;
     const row = Math.floor(i / cols);
     const bx = margin + col * (colWidth + colGap);
@@ -690,7 +769,7 @@ function onCreatePoster() {
     // コード・糸数（10px）
     ctx.fillStyle = '#999';
     ctx.font = '10px serif';
-    ctx.fillText(`${c.id} ${c.name} ${c.hex} ${c.threads}本`, textX, by + swSize + 2);
+    ctx.fillText(`${c.id} ${c.name} ${c.hex} ${c.threadsList.join('・')}本`, textX, by + swSize + 2);
   });
 
   y = listStartY + colorListHeight + 20;
@@ -716,6 +795,9 @@ function onCreatePoster() {
   preview.src = poster.toDataURL('image/jpeg', 0.95);
   preview.style.display = 'block';
   document.getElementById('posterDownloadRow').style.display = 'flex';
+  const posterBox = document.getElementById('posterBox');
+  posterBox.style.display = 'block';
+  setTimeout(() => posterBox.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
 
   document.getElementById('downloadPosterBtn').onclick = () => {
     const link = document.createElement('a');
@@ -751,8 +833,8 @@ function generateSubmissionText(orgName, concept) {
   text += `【応募者名／団体名】\n${orgName}\n\n`;
   text += `【コンセプト・想い】\n${concept}\n\n`;
   text += `【使用色一覧】\n`;
-  selectedColors.forEach(c => {
-    text += `${c.id} ${c.name} ${c.hex} 糸数:${c.threads}本 ${c.reason}\n`;
+  groupColors().forEach(c => {
+    text += `${c.id} ${c.name} ${c.hex} 糸数:${c.threadsList.join('・')}本 ${c.reason}\n`;
   });
   document.getElementById('submissionData').value = text;
 }
