@@ -183,6 +183,16 @@ header .sub{font-size:9px;letter-spacing:5px}
 .site-foot .foot-copy{margin:0;font-size:11px;letter-spacing:1px;font-family:"Times New Roman",serif;color:#8a8a8a}
 @media(max-width:640px){.site-foot{padding:22px 16px 32px}.site-foot .foot-text{font-size:11px}}
 .selected-item .reason:disabled{background:#f1eee3;color:#999;cursor:not-allowed}
+
+/* ===== 画面が狭いとき：作業中に見える小さなプレビュー ===== */
+.mini-preview{display:none}
+@media(max-width:999px){
+.mini-preview.show{display:block;position:fixed;right:12px;bottom:12px;width:96px;height:96px;z-index:60;border:3px solid #fff;border-radius:12px;box-shadow:0 10px 26px rgba(13,27,62,.42),0 0 0 1px var(--gold);overflow:hidden;cursor:pointer;background:#fff;transition:width .25s ease,height .25s ease}
+.mini-preview.show.big{width:min(80vw,400px);height:min(80vw,400px)}
+.mini-preview canvas{display:block;width:100%;height:100%}
+.mini-hint{position:absolute;left:0;right:0;bottom:0;background:rgba(13,27,62,.78);color:var(--gold-light);font-size:9px;text-align:center;padding:2px 0;letter-spacing:0}
+.mini-preview:not(.big) .mini-hint{display:none}
+}
 </style>
 </head>
 <body>
@@ -290,6 +300,11 @@ header .sub{font-size:9px;letter-spacing:5px}
 <p class="foot-copy">© 2026 藤井寺まちリンク協議会 All Rights Reserved.</p>
 </footer>
 
+<div class="mini-preview" id="miniPreview" title="タップで拡大・縮小">
+<canvas id="miniCanvas" width="360" height="360"></canvas>
+<span class="mini-hint">タップで拡大・縮小</span>
+</div>
+
 <script>
 /* =========================================================
 日本の伝統色 137色（id は 1〜137 の連番）
@@ -330,6 +345,7 @@ const CATEGORIES = [
 let currentCategory = 'all';
 let selectedColors = []; // {id,name,hex,threads,reason}
 let lastSett = null;
+let mainInView = false; // 本来のプレビューが画面内にあるか
 
 function escapeAttr(s) {
   return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -356,6 +372,16 @@ function groupColors() {
   return groups;
 }
 
+/* 画面が狭いときの小さなプレビューを更新 */
+function updateMini() {
+  const mini = document.getElementById('miniPreview');
+  const mc = document.getElementById('miniCanvas');
+  if (!lastSett) { mini.classList.remove('show', 'big'); return; }
+  mc.getContext('2d').drawImage(document.getElementById('tartanCanvas'), 0, 0, mc.width, mc.height);
+  mini.classList.toggle('show', !mainInView);
+  if (mainInView) mini.classList.remove('big');
+}
+
 /* 初期化 */
 function init() {
   renderCategoryFilter();
@@ -366,6 +392,13 @@ function init() {
   document.getElementById('downloadImgBtn').addEventListener('click', onDownloadImage);
   document.getElementById('createPosterBtn').addEventListener('click', onCreatePoster);
   document.getElementById('copyDataBtn').addEventListener('click', onCopyData);
+  document.getElementById('miniPreview').addEventListener('click', e => e.currentTarget.classList.toggle('big'));
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(entries => {
+      mainInView = entries[0].intersectionRatio >= 0.6;
+      updateMini();
+    }, { threshold: [0, 0.2, 0.4, 0.6, 0.8, 1] }).observe(document.getElementById('tartanCanvas'));
+  }
 }
 
 function renderCategoryFilter() {
@@ -581,11 +614,13 @@ function renderPreview() {
     ctx.textAlign = 'center';
     ctx.fillText('色を2色以上選択してください', canvas.width / 2, canvas.height / 2);
     lastSett = null;
+    updateMini();
     return;
   }
   const repeat = parseInt(document.getElementById('repeatCount').value) || 6;
   lastSett = buildSett(selectedColors);
   drawTartan(ctx, canvas.width, lastSett, repeat);
+  updateMini();
 }
 
 /* 高画質画像ダウンロード */
