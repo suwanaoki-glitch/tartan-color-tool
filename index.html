@@ -28,6 +28,8 @@ header .sub{position:relative;font-size:11px;color:#cfd3e0;letter-spacing:6px;ma
 .required-label::after{content:" ※必須";color:var(--error);font-size:11px;font-weight:400}
 .top-bar textarea{width:100%;min-height:60px;padding:12px 14px;border:1px solid #d8d3c3;border-radius:8px;font-family:inherit;font-size:14px;resize:vertical;background:#fffefb;transition:border-color .2s,box-shadow .2s}
 .top-bar textarea:focus,.selected-item .reason:focus,.thread-input:focus,.settings-row input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,162,39,.2)}
+.char-count{text-align:right;font-size:11px;color:#999;margin-top:4px}
+.char-count.near{color:var(--error)}
 .name-field input{width:100%;text-align:right;font-size:30px;font-weight:700;color:var(--navy);border:none;border-bottom:2px solid var(--gold);background:transparent;padding:6px 2px;font-family:inherit;transition:border-color .2s}
 .name-field input:focus{outline:none;border-bottom-color:var(--navy)}
 .top-bar input.error,.top-bar textarea.error{border-color:var(--error)!important;background:#fdecea}
@@ -57,6 +59,7 @@ header .sub{position:relative;font-size:11px;color:#cfd3e0;letter-spacing:6px;ma
 .selected-item .sw{width:48px;height:48px;border-radius:10px;flex-shrink:0;box-shadow:0 0 0 1px rgba(0,0,0,.12),0 3px 8px rgba(0,0,0,.15)}
 .selected-item .info{flex:1;min-width:0}
 .selected-item .info .name{font-size:13px;font-weight:700;color:var(--navy)}
+.selected-item .info .code{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:4px;background:var(--navy);color:var(--gold-light);font-size:10px;font-family:"Courier New",monospace;font-weight:700;vertical-align:1px}
 .selected-item .info .hex{font-size:11px;color:#8a8a8a;margin-bottom:6px;font-family:"Courier New",monospace}
 .selected-item .reason{width:100%;font-size:12px;padding:7px 9px;border:1px solid #d8d3c3;border-radius:6px;background:#fff;transition:all .2s}
 .selected-item .reason.error{border-color:var(--error);background:#fdecea}
@@ -77,6 +80,7 @@ canvas#tartanCanvas{display:block;margin:0 auto;border:8px solid #fff;outline:1p
 .export-section{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
 #posterPreview{max-width:100%;display:block;margin:22px auto 0;border:1px solid var(--line);border-radius:4px;box-shadow:0 14px 36px rgba(13,27,62,.18)}
 textarea#submissionData{width:100%;min-height:220px;font-family:"Courier New",monospace;font-size:12px;padding:14px;border:1px solid #d8d3c3;border-radius:10px;margin-top:10px;background:#faf8f1;line-height:1.7}
+.reg-note{font-size:11px;color:#777;line-height:1.7;margin:0 0 6px}
 .thread-rule{font-size:11px;color:#999;margin-top:6px}
 .settings-row{display:flex;gap:12px;align-items:flex-end;margin-bottom:14px}
 .settings-row .field-group{flex:1}
@@ -205,7 +209,8 @@ header .sub{font-size:9px;letter-spacing:5px}
 <div class="top-bar">
 <div class="concept-field">
 <label class="required-label" for="concept">コンセプト・想い</label>
-<textarea id="concept" placeholder="このタータンに込めた想いをご記入ください"></textarea>
+<textarea id="concept" maxlength="300" placeholder="このタータンに込めた想いをご記入ください（300文字以内）"></textarea>
+<div class="char-count" id="conceptCount">0 / 300</div>
 </div>
 <div class="name-field">
 <label class="required-label" for="orgName">応募者名／団体名</label>
@@ -241,7 +246,7 @@ header .sub{font-size:9px;letter-spacing:5px}
 </div>
 </div>
 <div class="selected-list" id="selectedList"></div>
-<div class="thread-rule">※ 糸の本数は必ず2の倍数になります（自動補正されます）</div>
+<div class="thread-rule">※ 糸の本数は必ず2の倍数になります（自動補正されます）<br>※ 並びの最初と最後の色が折り返し点（ピボット）になり、左右対称の柄になります</div>
 </div>
 </div>
 
@@ -267,6 +272,7 @@ header .sub{font-size:9px;letter-spacing:5px}
 </div>
 <div class="box">
 <h2>提出用テキストデータ</h2>
+<p class="reg-note">応募者名・コンセプト・タータン登録用データ（Scottish Register of Tartans 形式）をまとめて出力します。</p>
 <textarea id="submissionData" readonly></textarea>
 <div class="export-section">
 <button class="btn-sub" id="copyDataBtn">テキストをコピー</button>
@@ -328,6 +334,8 @@ Object.keys(RAW).forEach(cat => {
     TARTAN_COLORS.push({ id: TARTAN_COLORS.length + 1, name: name, hex: '#' + hex, cat: cat });
   });
 });
+const COLOR_BY_ID = {};
+TARTAN_COLORS.forEach(c => { COLOR_BY_ID[c.id] = c; });
 
 const CATEGORIES = [
   {key:'all', label:'すべて'},
@@ -358,15 +366,125 @@ function appendSama(name) {
   return /(様|殿)$/.test(t) ? t : t + ' 様';
 }
 
+/* =========================================================
+タータン登録用の色コード（K=BLACK、LG=LIGHT GREEN など）
+========================================================= */
+function hexToHsl(hex) {
+  const n = parseInt(hex.replace('#', ''), 16);
+  const r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  let h = 0, s = 0;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+    else if (max === g) h = ((b - r) / d + 2) * 60;
+    else h = ((r - g) / d + 4) * 60;
+  }
+  return { h, s, l };
+}
+
+const BASE_NAMES = { K:'BLACK', W:'WHITE', N:'GREY', R:'RED', PK:'PINK', O:'ORANGE', T:'BROWN', Y:'YELLOW', G:'GREEN', B:'BLUE', P:'PURPLE' };
+
+/* 1色の基本コード（重なりの調整前） */
+function baseTartanCode(c) {
+  const { h, s, l } = hexToHsl(c.hex);
+  // 無彩色
+  if (c.cat === 'mono' || s < 0.15 || l >= 0.93 || l <= 0.1) {
+    if (l >= 0.85) return { code:'W', name:'WHITE' };
+    if (l <= 0.2) return { code:'K', name:'BLACK' };
+    if (l >= 0.6)  return { code:'LN', name:'LIGHT GREY' };
+    if (l <= 0.35) return { code:'DN', name:'DARK GREY' };
+    return { code:'N', name:'GREY' };
+  }
+  let base;
+  if (c.cat === 'brown') base = 'T';
+  else if (c.cat === 'yellow') base = (h < 40 ? 'O' : 'Y');
+  else if (c.cat === 'green') base = 'G';
+  else if (c.cat === 'blue') base = 'B';
+  else if (c.cat === 'purple') base = 'P';
+  else if (h >= 345 || h < 12) base = (l >= 0.7 ? 'PK' : 'R');
+  else if (h < 45) base = (l < 0.5 ? 'T' : 'O');
+  else if (h < 70) base = (l < 0.45 ? 'T' : 'Y');
+  else if (h < 185) base = 'G';
+  else if (h < 260) base = 'B';
+  else if (h < 320) base = 'P';
+  else base = (l < 0.42 ? 'R' : 'PK');
+  let prefix = '';
+  if (l >= 0.72) prefix = 'L';
+  else if (l <= 0.3) prefix = 'D';
+  return { code: prefix + base, name: (prefix === 'L' ? 'LIGHT ' : prefix === 'D' ? 'DARK ' : '') + BASE_NAMES[base] };
+}
+
+/* 使っている色にコードを割り当てる（違う色が同じコードになったら A,B,C… を付けて区別） */
+function assignTartanCodes(ids) {
+  const result = {};
+  const used = new Set();
+  const bases = ids.map(id => ({ id, ...baseTartanCode(COLOR_BY_ID[id]) }));
+  const baseSet = new Set(bases.map(b => b.code));
+  bases.forEach(b => {
+    let code = b.code, name = b.name, n = 1;
+    if (used.has(code)) {
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      for (let i = 0; i < letters.length; i++) {
+        const cand = b.code + letters[i];
+        if (!used.has(cand) && !baseSet.has(cand)) { code = cand; n = i + 2; break; }
+      }
+      name = b.name + ' ' + n;
+    }
+    used.add(code);
+    result[b.id] = { code, name };
+  });
+  return result;
+}
+
+/* 選択色の並びを「帯」にまとめる（隣り合う同じ色は1本の帯として足し合わせる） */
+function getBlocks(colors) {
+  const blocks = [];
+  colors.forEach(c => {
+    const last = blocks[blocks.length - 1];
+    if (last && last.id === c.id) last.threads += c.threads;
+    else blocks.push({ id: c.id, hex: c.hex, threads: c.threads });
+  });
+  return blocks;
+}
+
+function uniqueIds() {
+  const ids = [];
+  selectedColors.forEach(c => { if (!ids.includes(c.id)) ids.push(c.id); });
+  return ids;
+}
+
+/* 登録用データ（Pallet と Threadcount） */
+function buildRegisterData() {
+  const ids = uniqueIds();
+  if (selectedColors.length < 2) return { pallet: '', threadcount: '', codes: assignTartanCodes(ids) };
+  const codes = assignTartanCodes(ids);
+  const pallet = ids.map(id => `${codes[id].code}=${COLOR_BY_ID[id].hex.toUpperCase()}#${codes[id].name};`).join('');
+  const blocks = getBlocks(selectedColors);
+  let threadcount;
+  if (blocks.length === 1) {
+    threadcount = `${codes[blocks[0].id].code}${blocks[0].threads}`;
+  } else {
+    threadcount = blocks.map((b, i) => {
+      const pivot = (i === 0 || i === blocks.length - 1) ? '/' : '';
+      return `${codes[b.id].code}${pivot}${b.threads}`;
+    }).join(' ');
+  }
+  return { pallet, threadcount, codes };
+}
+
 /* 同じ色は1色にまとめる（最初に選んだ順・最初の理由を採用。糸数は選んだ順に並べる） */
 function groupColors() {
+  const codes = assignTartanCodes(uniqueIds());
   const groups = [];
   selectedColors.forEach(c => {
     const g = groups.find(x => x.id === c.id);
     if (g) {
       g.threadsList.push(c.threads);
     } else {
-      groups.push({ id: c.id, name: c.name, hex: c.hex, reason: c.reason, threadsList: [c.threads] });
+      groups.push({ id: c.id, name: c.name, hex: c.hex, reason: c.reason, threadsList: [c.threads], code: codes[c.id].code });
     }
   });
   return groups;
@@ -392,6 +510,10 @@ function init() {
   document.getElementById('downloadImgBtn').addEventListener('click', onDownloadImage);
   document.getElementById('createPosterBtn').addEventListener('click', onCreatePoster);
   document.getElementById('copyDataBtn').addEventListener('click', onCopyData);
+  const concept = document.getElementById('concept');
+  concept.addEventListener('input', () => { updateConceptCount(); updateSubmissionText(); });
+  document.getElementById('orgName').addEventListener('input', e => { e.target.classList.remove('error'); updateSubmissionText(); });
+  updateConceptCount();
   document.getElementById('miniPreview').addEventListener('click', e => e.currentTarget.classList.toggle('big'));
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(entries => {
@@ -399,6 +521,16 @@ function init() {
       updateMini();
     }, { threshold: [0, 0.2, 0.4, 0.6, 0.8, 1] }).observe(document.getElementById('tartanCanvas'));
   }
+}
+
+function updateConceptCount() {
+  const concept = document.getElementById('concept');
+  const max = parseInt(concept.getAttribute('maxlength')) || 300;
+  const len = [...concept.value].length;
+  const el = document.getElementById('conceptCount');
+  el.textContent = `${len} / ${max}`;
+  el.classList.toggle('near', len >= max - 20);
+  if (len) concept.classList.remove('error');
 }
 
 function renderCategoryFilter() {
@@ -456,6 +588,7 @@ function removeLastOfColor(id) {
 function renderSelectedList() {
   const wrap = document.getElementById('selectedList');
   wrap.innerHTML = '';
+  const codes = assignTartanCodes(uniqueIds());
   selectedColors.forEach((c, idx) => {
     const item = document.createElement('div');
     item.className = 'selected-item';
@@ -464,7 +597,7 @@ function renderSelectedList() {
     item.innerHTML = `
       <div class="sw" style="background:${c.hex}"></div>
       <div class="info">
-        <div class="name">${c.id} ${c.name}</div>
+        <div class="name">${c.id} ${c.name}<span class="code" title="タータン登録用の色コード">${codes[c.id].code}</span></div>
         <div class="hex">${c.hex}</div>
         <input type="text" class="reason" data-idx="${idx}" maxlength="20" ${dup ? 'disabled placeholder="同じ色は1つ目の理由を使います"' : 'placeholder="選定理由（20文字以内）※必須"'} value="${dup ? '' : escapeAttr(c.reason)}">
         <div class="meta-row">
@@ -484,6 +617,7 @@ function renderSelectedList() {
     input.addEventListener('input', e => {
       selectedColors[+e.target.dataset.idx].reason = e.target.value;
       e.target.classList.remove('error');
+      updateSubmissionText();
     });
   });
 
@@ -577,13 +711,15 @@ function validateRequiredFields() {
   return valid;
 }
 
-/* タータン生成（2/2綾織り・左右対称） */
+/* タータン生成（2/2綾織り・左右対称）
+   最初と最後の帯を折り返し点（ピボット）とし、登録用 Threadcount（例：LG/10 Y40 T20 P40 W/10）と同じ柄になるようにする */
 function buildSett(colors) {
-  let seq = [];
-  colors.forEach(c => { for (let i = 0; i < c.threads; i++) seq.push(c.hex); });
-  if (seq.length < 2) return seq;
-  const mirror = seq.slice(1, -1).reverse();
-  return seq.concat(mirror);
+  const blocks = getBlocks(colors);
+  const seq = [];
+  const push = b => { for (let i = 0; i < b.threads; i++) seq.push(b.hex); };
+  blocks.forEach(push);
+  for (let i = blocks.length - 2; i >= 1; i--) push(blocks[i]);
+  return seq;
 }
 
 function drawTartan(ctx, size, sett, repeat) {
@@ -615,17 +751,18 @@ function renderPreview() {
     ctx.fillText('色を2色以上選択してください', canvas.width / 2, canvas.height / 2);
     lastSett = null;
     updateMini();
+    updateSubmissionText();
     return;
   }
   const repeat = parseInt(document.getElementById('repeatCount').value) || 6;
   lastSett = buildSett(selectedColors);
   drawTartan(ctx, canvas.width, lastSett, repeat);
   updateMini();
+  updateSubmissionText();
 }
 
-/* 高画質画像ダウンロード */
+/* 高画質画像ダウンロード（柄だけの保存なので入力チェックは不要） */
 function onDownloadImage() {
-  if (!validateRequiredFields()) return;
   if (!lastSett) { showToast('色を2色以上選択してください。'); return; }
   const repeat = parseInt(document.getElementById('repeatCount').value) || 6;
   const size = 2400;
@@ -804,7 +941,7 @@ function onCreatePoster() {
     // コード・糸数（10px）
     ctx.fillStyle = '#999';
     ctx.font = '10px serif';
-    ctx.fillText(`${c.id} ${c.name} ${c.hex} ${c.threadsList.join('・')}本`, textX, by + swSize + 2);
+    ctx.fillText(`${c.code}  ${c.id} ${c.name} ${c.hex} ${c.threadsList.join('・')}本`, textX, by + swSize + 2);
   });
 
   y = listStartY + colorListHeight + 20;
@@ -845,49 +982,71 @@ function onCreatePoster() {
   showToast('提出用データを作成しました。');
 }
 
+/* 折り返し（入力した改行もそのまま反映する） */
 function wrapText(ctx, text, maxWidth, fontSize) {
   ctx.font = fontSize + 'px serif';
   const lines = [];
-  let line = '';
-  for (const ch of text) {
-    const test = line + ch;
-    if (ctx.measureText(test).width > maxWidth && line !== '') {
-      lines.push(line);
-      line = ch;
-    } else {
-      line = test;
+  String(text).replace(/\r\n?/g, '\n').split('\n').forEach(para => {
+    let line = '';
+    for (const ch of para) {
+      const test = line + ch;
+      if (ctx.measureText(test).width > maxWidth && line !== '') {
+        lines.push(line);
+        line = ch;
+      } else {
+        line = test;
+      }
     }
-  }
-  if (line) lines.push(line);
+    lines.push(line);
+  });
   return lines.length ? lines : [''];
+}
+
+/* 提出用テキストデータを入力内容からその場で更新 */
+function updateSubmissionText() {
+  generateSubmissionText(appendSama(document.getElementById('orgName').value), document.getElementById('concept').value.trim());
 }
 
 /* 提出用テキストデータ */
 function generateSubmissionText(orgName, concept) {
+  const reg = buildRegisterData();
+
   let text = '';
   text += `【応募者名／団体名】\n${orgName}\n\n`;
   text += `【コンセプト・想い】\n${concept}\n\n`;
+  text += `【PALLET（色の定義）】\n${reg.pallet}\n\n`;
+  text += `【THREADCOUNT（糸の並び）】\n${reg.threadcount}\n\n`;
   text += `【使用色一覧】\n`;
   groupColors().forEach(c => {
-    text += `${c.id} ${c.name} ${c.hex} 糸数:${c.threadsList.join('・')}本 ${c.reason}\n`;
+    text += `${c.code} ${c.id} ${c.name} ${c.hex} 糸数:${c.threadsList.join('・')}本 ${c.reason}\n`;
   });
   document.getElementById('submissionData').value = text;
+}
+
+function copyText(str, done) {
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = str;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    done();
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(str).then(done).catch(fallback);
+  } else {
+    fallback();
+  }
 }
 
 function onCopyData() {
   const area = document.getElementById('submissionData');
   if (!area.value) {
-    showToast('先に「提出用データ作成」を押してください。');
+    showToast('まだコピーする内容がありません。');
     return;
   }
-  const done = () => showToast('テキストをコピーしました。');
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(area.value).then(done).catch(() => {
-      area.select(); document.execCommand('copy'); done();
-    });
-  } else {
-    area.select(); document.execCommand('copy'); done();
-  }
+  copyText(area.value, () => showToast('テキストをコピーしました。'));
 }
 
 init();
