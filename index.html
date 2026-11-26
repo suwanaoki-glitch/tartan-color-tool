@@ -1139,6 +1139,7 @@ function onCopyData() {
     showToast('まだコピーする内容がありません。');
     return;
   }
+  if (!validateRequiredFields()) return; /* 色の意味が空欄のままコピーさせない */
   copyText(area.value, () => showToast('テキストをコピーしました。'));
 }
 
@@ -1148,9 +1149,7 @@ function onFormApply(e) {
   e.preventDefault();
   const name = document.getElementById('orgName').value.trim();
   const concept = document.getElementById('concept').value.trim();
-  if (!hasTwoColors()) { showToast('2色以上を使って柄を作ってから応募してください。'); return; }
-  if (!name) { showToast('上の「応募者名／団体名」を入力してください。'); return; }
-  if (!concept) { showToast('上の「コンセプト・想い」を入力してください。'); return; }
+  if (!validateRequiredFields()) return; /* 応募者名・コンセプト・各色の選定理由（色の意味）がすべて入っていないと進めない */
   updateSubmissionText();
   const text = document.getElementById('submissionData').value;
   const url = FORM_URL + '?usp=pp_url'
