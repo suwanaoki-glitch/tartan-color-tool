@@ -26,11 +26,11 @@ header .sub{position:relative;font-size:11px;color:#cfd3e0;letter-spacing:6px;ma
 .top-bar .name-field{flex:1 1 260px;text-align:right}
 .top-bar label{display:block;font-size:12px;color:var(--navy);margin-bottom:8px;font-weight:700;letter-spacing:2px}
 .expert{margin-top:18px;border:1px dashed #cfc8b0;border-radius:10px;background:#faf8f1;padding:0}
-.expert>summary{cursor:pointer;padding:12px 16px;font-size:13px;color:#6b6450;font-weight:600;list-style:none}
-.expert>summary::-webkit-details-marker{display:none}
-.expert>summary::before{content:"▸ ";color:var(--gold)}
-.expert[open]>summary::before{content:"▾ "}
-.expert-body{padding:4px 16px 16px}
+.expert-toggle-row{margin-top:14px;text-align:right}
+.expert-toggle{font-size:12px;padding:7px 14px;border:1px solid #cfc8b0;border-radius:20px;background:#fff;color:#6b6450;cursor:pointer;font-family:inherit}
+.expert-toggle:hover{border-color:var(--gold);color:var(--navy)}
+.expert-toggle.on{background:var(--navy);color:var(--gold-light);border-color:var(--navy)}
+.expert-body{padding:16px}
 .expert-note{font-size:12px;color:#7a735c;line-height:1.7;margin:0 0 10px}
 .expert-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px}
 .expert-row label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:#7a735c;flex:1 1 180px}
@@ -253,8 +253,8 @@ header .sub{font-size:9px;letter-spacing:5px}
 <h2>色を選ぶ</h2>
 <div class="category-filter" id="categoryFilter"></div>
 <div class="palette" id="palette"></div>
-<details class="expert" id="expertBox" style="display:none">
-<summary>詳しい人向け：色コードを直接入れる</summary>
+<div class="expert-toggle-row" id="expertToggleRow" style="display:none"><button type="button" class="expert-toggle" id="expertToggle" aria-expanded="false">詳しい方向け：色コードを直接入れる</button></div>
+<div class="expert" id="expertBox" style="display:none">
 <div class="expert-body">
 <p class="expert-note">137色にない色を使いたい方向けです。16進数の色コードか、カラーピッカーで色を決めます。名前は日本語・英語どちらも空でかまいません（英語名が空なら、色から自動で付きます）。</p>
 <div class="expert-row">
@@ -268,7 +268,7 @@ header .sub{font-size:9px;letter-spacing:5px}
 <div class="expert-info" id="exInfo"></div>
 <button type="button" class="btn-sub" id="exAdd">この色を追加</button>
 </div>
-</details>
+</div>
 </div>
 
 <div class="box">
@@ -381,9 +381,9 @@ Object.keys(RAW).forEach(cat => {
 const COLOR_BY_ID = {};
 TARTAN_COLORS.forEach(c => { COLOR_BY_ID[c.id] = c; });
 
-/* 自治体ごとのスイッチ：true にすると「詳しい人向け：色コードを直接入れる」を折りたたみで表示する。
-   管理者は、URLの末尾に ?pro=1 を付けて開いても表示できる（一般の方には出さない）。 */
-const CONFIG = { expertColorInput: false };
+/* 自治体ごとのスイッチ：true なら「詳しい方向け：色コードを直接入れる」ボタンを表示する（押すと色コードを直接入れるモードに切り替わる）。
+   false にすると、その自治体ではボタン自体を出さない（137色の画面だけになる）。 */
+const CONFIG = { expertColorInput: true };
 
 /* 137色にない色（新色）。id は N1, N2… */
 const customColors = [];
@@ -639,7 +639,7 @@ function init() {
 
 /* 「詳しい人向け：色コードを直接入れる」 */
 function expertColorEnabled() {
-  return CONFIG.expertColorInput || /[?&]pro=1(&|$)/.test(location.search);
+  return !!CONFIG.expertColorInput;
 }
 
 /* 入力した色を登録する。137色と同じ色コードならその公式色を返し、同じ新色がすでにあればそれを使い回す */
@@ -676,7 +676,17 @@ function updateExpertInfo() {
 
 function initExpertColor() {
   if (!expertColorEnabled()) return;
-  document.getElementById('expertBox').style.display = 'block';
+  const box = document.getElementById('expertBox');
+  const toggle = document.getElementById('expertToggle');
+  document.getElementById('expertToggleRow').style.display = 'block';
+  toggle.addEventListener('click', () => {
+    const on = box.style.display === 'none';
+    box.style.display = on ? 'block' : 'none';
+    toggle.classList.toggle('on', on);
+    toggle.setAttribute('aria-expanded', on ? 'true' : 'false');
+    toggle.textContent = on ? 'ふつうの画面にもどす' : '詳しい方向け：色コードを直接入れる';
+    if (on) box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
   const hexIn = document.getElementById('exHex');
   const pick = document.getElementById('exPick');
   hexIn.addEventListener('input', () => {
