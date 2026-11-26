@@ -183,10 +183,16 @@ header .sub{font-size:9px;letter-spacing:5px}
 #posterPreview{max-width:min(100%,900px)}
 @media(min-width:1000px){
 .right-panel .result-panel{position:sticky;top:14px;padding:18px 22px 22px}
-.right-panel canvas#tartanCanvas{height:min(640px,calc(100vh - 240px));width:auto;max-width:100%;object-fit:contain}
+.right-panel canvas#tartanCanvas:not(.fixed){height:min(640px,calc(100vh - 240px));width:auto;max-width:100%;object-fit:contain}
 .right-panel .export-section{margin-top:16px}
 .right-panel .preview-label{margin-bottom:12px}
 }
+.view-mode{display:flex;gap:8px;justify-content:center;margin:0 0 8px}
+.view-mode button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px;font-size:13px;cursor:pointer;color:#0d1b3e}
+.view-mode button.on{background:#0d1b3e;color:#fff;border-color:#0d1b3e}
+.scale-note{font-size:12px;color:#5a6075;text-align:center;line-height:1.6;margin:0 0 10px}
+#canvasWrap{overflow:auto;max-width:100%;text-align:center}
+.right-panel canvas#tartanCanvas.fixed{height:auto;width:auto;max-width:none;object-fit:none}
 @media(max-width:1000px){.after{grid-template-columns:1fr}}
 @media(max-width:640px){.after{padding:0 14px 14px}}
 
@@ -288,7 +294,9 @@ header .sub{font-size:9px;letter-spacing:5px}
 <div class="right-panel">
 <div class="result-panel">
 <div class="preview-label">LIVE PREVIEW</div>
-<canvas id="tartanCanvas" width="760" height="760"></canvas>
+<div class="view-mode"><button type="button" id="modeOrig" class="on">元の色で見る</button><button type="button" id="modeReg">登記所と同じ見た目で見る</button></div>
+<div class="scale-note" id="scaleNote"></div>
+<div id="canvasWrap"><canvas id="tartanCanvas" width="760" height="760"></canvas></div>
 <div class="export-section">
 <button class="btn-sub" id="downloadImgBtn">画像を保存（高画質）</button>
 <button class="btn-sub" id="createPosterBtn">提出用データ作成</button>
@@ -620,6 +628,9 @@ function init() {
   renderSelectedList();
   renderPreview();
   document.getElementById('repeatCount').addEventListener('input', renderPreview);
+  document.getElementById('repeatCount').addEventListener('change', () => { if (viewMode === 'orig' && lastSett) showToast('縮尺を変えました（1本の見える大きさが変わります）'); });
+  document.getElementById('modeOrig').addEventListener('click', () => setViewMode('orig'));
+  document.getElementById('modeReg').addEventListener('click', () => setViewMode('reg'));
   document.getElementById('downloadImgBtn').addEventListener('click', onDownloadImage);
   document.getElementById('createPosterBtn').addEventListener('click', onCreatePoster);
   document.getElementById('copyDataBtn').addEventListener('click', onCopyData);
@@ -952,6 +963,49 @@ function drawTartan(ctx, size, sett, repeat) {
   }
 }
 
+/* ===== 登記所と同じ見た目モード =====
+   1本＝1ピクセル固定・750×750px・2/2ツイル。登記所の画像は元の色より暗いので、色を一定の倍率で暗くする。
+   REG_DARKEN は仮の値（ミササギの地色1か所の測定：元の約0.7倍）。登記所の画像と見比べて合わせ込むこと。 */
+const REG_SIZE = 750;
+const REG_DARKEN = 0.70;
+let viewMode = 'orig';
+function darkenHex(hex, f) {
+  const h = hex.replace('#', '');
+  const ch = i => Math.max(0, Math.min(255, Math.round(parseInt(h.substr(i, 2), 16) * f)));
+  return '#' + [0, 2, 4].map(i => ch(i).toString(16).padStart(2, '0')).join('');
+}
+function drawTartanReg(ctx, sett) {
+  const n = sett.length;
+  const cols = sett.map(c => darkenHex(c, REG_DARKEN));
+  ctx.clearRect(0, 0, REG_SIZE, REG_SIZE);
+  for (let y = 0; y < REG_SIZE; y++) {
+    const yT = y % n;
+    for (let x = 0; x < REG_SIZE; x++) {
+      const xT = x % n;
+      ctx.fillStyle = ((xT + yT) % 4) < 2 ? cols[xT] : cols[yT];
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
+}
+function updateScaleNote(sett) {
+  const el = document.getElementById('scaleNote');
+  if (!el) return;
+  if (!sett) { el.textContent = ''; return; }
+  const n = sett.length;
+  if (viewMode === 'reg') {
+    el.textContent = '縮尺は固定：1本＝1px（' + REG_SIZE + '×' + REG_SIZE + 'px）。1柄＝' + n + '本（約' + (n / THREADS_PER_CM).toFixed(1) + 'cm）、画面に約' + (REG_SIZE / n).toFixed(1) + '回繰り返し。色は登記所の画像に近づけるため、元の約' + Math.round(REG_DARKEN * 100) + '％の明るさ（仮の値）。';
+  } else {
+    const repeat = Math.min(12, Math.max(1, parseInt(document.getElementById('repeatCount').value) || 6));
+    el.textContent = '元の色で表示中。繰り返し数' + repeat + '回のとき、1本＝約' + (760 / repeat / n).toFixed(2) + 'px（繰り返し数を変えると縮尺が変わります）。';
+  }
+}
+function setViewMode(m) {
+  viewMode = m;
+  document.getElementById('modeOrig').classList.toggle('on', m === 'orig');
+  document.getElementById('modeReg').classList.toggle('on', m === 'reg');
+  renderPreview();
+}
+
 function updateSettInfo() {
   const el = document.getElementById('settInfo');
   if (!hasTwoColors()) { el.textContent = ''; return; }
@@ -972,6 +1026,7 @@ function renderPreview() {
     ctx.textAlign = 'center';
     ctx.fillText('違う色を2色以上選択してください', canvas.width / 2, canvas.height / 2);
     lastSett = null;
+    updateScaleNote(null);
     updateMini();
     updateSettInfo();
     updateSubmissionText();
@@ -979,7 +1034,16 @@ function renderPreview() {
   }
   const repeat = Math.min(12, Math.max(1, parseInt(document.getElementById('repeatCount').value) || 6));
   lastSett = buildSett(selectedColors);
-  drawTartan(ctx, canvas.width, lastSett, repeat);
+  if (viewMode === 'reg') {
+    if (canvas.width !== REG_SIZE) { canvas.width = REG_SIZE; canvas.height = REG_SIZE; }
+    canvas.classList.add('fixed');
+    drawTartanReg(canvas.getContext('2d'), lastSett);
+  } else {
+    if (canvas.width !== 760) { canvas.width = 760; canvas.height = 760; }
+    canvas.classList.remove('fixed');
+    drawTartan(canvas.getContext('2d'), canvas.width, lastSett, repeat);
+  }
+  updateScaleNote(lastSett);
   updateMini();
   updateSettInfo();
   updateSubmissionText();
@@ -994,7 +1058,12 @@ function onDownloadImage() {
   const off = document.createElement('canvas');
   off.width = size;
   off.height = size;
-  drawTartan(off.getContext('2d'), size, lastSett, repeat);
+  if (viewMode === 'reg') {
+    off.width = REG_SIZE; off.height = REG_SIZE;
+    drawTartanReg(off.getContext('2d'), lastSett);
+  } else {
+    drawTartan(off.getContext('2d'), size, lastSett, repeat);
+  }
   const url = off.toDataURL('image/jpeg', 0.95);
   const link = document.createElement('a');
   link.download = 'tartan_pattern.jpg';
