@@ -25,6 +25,18 @@ header .sub{position:relative;font-size:11px;color:#cfd3e0;letter-spacing:6px;ma
 .top-bar .concept-field{flex:2 1 420px}
 .top-bar .name-field{flex:1 1 260px;text-align:right}
 .top-bar label{display:block;font-size:12px;color:var(--navy);margin-bottom:8px;font-weight:700;letter-spacing:2px}
+.expert{margin-top:18px;border:1px dashed #cfc8b0;border-radius:10px;background:#faf8f1;padding:0}
+.expert>summary{cursor:pointer;padding:12px 16px;font-size:13px;color:#6b6450;font-weight:600;list-style:none}
+.expert>summary::-webkit-details-marker{display:none}
+.expert>summary::before{content:"▸ ";color:var(--gold)}
+.expert[open]>summary::before{content:"▾ "}
+.expert-body{padding:4px 16px 16px}
+.expert-note{font-size:12px;color:#7a735c;line-height:1.7;margin:0 0 10px}
+.expert-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px}
+.expert-row label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:#7a735c;flex:1 1 180px}
+.expert-row input[type=text]{font-size:13px;padding:8px 10px;border:1px solid #d8d3c3;border-radius:6px;background:#fff}
+.expert-row input[type=color]{width:100%;height:36px;padding:2px;border:1px solid #d8d3c3;border-radius:6px;background:#fff;cursor:pointer}
+.expert-info{font-size:12px;color:#5b553f;line-height:1.7;margin:0 0 10px;min-height:20px}
 .required-label::after{content:" ※必須";color:var(--error);font-size:11px;font-weight:400}
 .top-bar textarea{width:100%;min-height:60px;padding:12px 14px;border:1px solid #d8d3c3;border-radius:8px;font-family:inherit;font-size:14px;resize:vertical;background:#fffefb;transition:border-color .2s,box-shadow .2s}
 .top-bar textarea:focus,.selected-item .reason:focus,.thread-input:focus,.settings-row input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,162,39,.2)}
@@ -241,6 +253,22 @@ header .sub{font-size:9px;letter-spacing:5px}
 <h2>色を選ぶ</h2>
 <div class="category-filter" id="categoryFilter"></div>
 <div class="palette" id="palette"></div>
+<details class="expert" id="expertBox" style="display:none">
+<summary>詳しい人向け：色コードを直接入れる</summary>
+<div class="expert-body">
+<p class="expert-note">137色にない色を使いたい方向けです。16進数の色コードか、カラーピッカーで色を決めます。名前は日本語・英語どちらも空でかまいません（英語名が空なら、色から自動で付きます）。</p>
+<div class="expert-row">
+<label>色コード（16進数）<input type="text" id="exHex" placeholder="#7A5236" maxlength="7" autocomplete="off"></label>
+<label>カラーピッカー<input type="color" id="exPick" value="#7a5236"></label>
+</div>
+<div class="expert-row">
+<label>名前（日本語・任意）<input type="text" id="exJp" maxlength="12" placeholder="例：埴輪の茶"></label>
+<label>名前（英語・任意）<input type="text" id="exEn" maxlength="24" placeholder="例：HANIWA BROWN"></label>
+</div>
+<div class="expert-info" id="exInfo"></div>
+<button type="button" class="btn-sub" id="exAdd">この色を追加</button>
+</div>
+</details>
 </div>
 
 <div class="box">
@@ -353,6 +381,42 @@ Object.keys(RAW).forEach(cat => {
 const COLOR_BY_ID = {};
 TARTAN_COLORS.forEach(c => { COLOR_BY_ID[c.id] = c; });
 
+/* 自治体ごとのスイッチ：true にすると「詳しい人向け：色コードを直接入れる」を折りたたみで表示する。
+   管理者は、URLの末尾に ?pro=1 を付けて開いても表示できる（一般の方には出さない）。 */
+const CONFIG = { expertColorInput: false };
+
+/* 137色にない色（新色）。id は N1, N2… */
+const customColors = [];
+
+function normalizeHex(str) {
+  let t = String(str || '').trim().replace(/^#/, '');
+  if (/^[0-9a-fA-F]{3}$/.test(t)) t = t.split('').map(ch => ch + ch).join('');
+  return /^[0-9a-fA-F]{6}$/.test(t) ? '#' + t.toUpperCase() : null;
+}
+
+/* 色の差（ΔE、CIE76）。小さいほど近い（約2.3以下はほぼ同じに見える） */
+function hexToLab(hex) {
+  const n = parseInt(hex.replace('#', ''), 16);
+  const lin = v => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+  const r = lin((n >> 16) & 255), g = lin((n >> 8) & 255), b = lin(n & 255);
+  const X = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047;
+  const Y = (r * 0.2126 + g * 0.7152 + b * 0.0722);
+  const Z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883;
+  const f = t => t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
+  return [116 * f(Y) - 16, 500 * (f(X) - f(Y)), 200 * (f(Y) - f(Z))];
+}
+function deltaE(hexA, hexB) {
+  const a = hexToLab(hexA), b = hexToLab(hexB);
+  return Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2);
+}
+function nearestOfficial(hex) {
+  let best = null, bd = Infinity;
+  TARTAN_COLORS.forEach(c => { const d = deltaE(hex, c.hex); if (d < bd) { bd = d; best = c; } });
+  return { color: best, de: bd };
+}
+/* 画面・提出データに出す色の番号（137色は番号、新色は「新色」） */
+function idLabel(c) { return COLOR_BY_ID[c.id] && COLOR_BY_ID[c.id].custom ? '新色' : c.id; }
+
 const CATEGORIES = [
   {key:'all', label:'すべて'},
   {key:'red', label:'赤系'},
@@ -440,7 +504,12 @@ function baseTartanCode(c) {
 function assignTartanCodes(ids) {
   const result = {};
   const used = new Set();
-  const bases = ids.map(id => ({ id, ...baseTartanCode(COLOR_BY_ID[id]) }));
+  const bases = ids.map(id => {
+    const col = COLOR_BY_ID[id];
+    const b = baseTartanCode(col);
+    if (col.custom && col.nameEn) b.name = col.nameEn;   /* 新色は、入力された英語名があればそれを使う */
+    return { id, ...b };
+  });
   const baseSet = new Set(bases.map(b => b.code));
   bases.forEach(b => {
     let code = b.code, name = b.name, n = 1;
@@ -519,7 +588,7 @@ function groupColors() {
     if (g) {
       g.threadsList.push(c.threads);
     } else {
-      groups.push({ id: c.id, name: c.name, hex: c.hex, reason: c.reason, threadsList: [c.threads], code: codes[c.id].code });
+      groups.push({ id: c.id, name: c.name, hex: c.hex, reason: c.reason, threadsList: [c.threads], code: codes[c.id].code, custom: !!COLOR_BY_ID[c.id].custom });
     }
   });
   return groups;
@@ -545,6 +614,7 @@ function applyDeadline() {
 /* 初期化 */
 function init() {
   applyDeadline();
+  initExpertColor();
   renderCategoryFilter();
   renderPalette();
   renderSelectedList();
@@ -565,6 +635,65 @@ function init() {
       updateMini();
     }, { threshold: [0, 0.2, 0.4, 0.6, 0.8, 1] }).observe(document.getElementById('tartanCanvas'));
   }
+}
+
+/* 「詳しい人向け：色コードを直接入れる」 */
+function expertColorEnabled() {
+  return CONFIG.expertColorInput || /[?&]pro=1(&|$)/.test(location.search);
+}
+
+/* 入力した色を登録する。137色と同じ色コードならその公式色を返し、同じ新色がすでにあればそれを使い回す */
+function registerCustomColor(hex, jp, en) {
+  hex = normalizeHex(hex) || hex;
+  const official = TARTAN_COLORS.find(c => c.hex.toUpperCase() === hex);
+  if (official) return official;
+  en = String(en || '').toUpperCase().replace(/[;#=]+/g, ' ').replace(/\s+/g, ' ').trim();
+  jp = String(jp || '').trim();
+  let c = customColors.find(x => x.hex === hex);
+  if (!c) {
+    c = { id: 'N' + (customColors.length + 1), hex, cat: 'custom', custom: true, name: '', nameEn: '' };
+    customColors.push(c);
+    COLOR_BY_ID[c.id] = c;
+  }
+  if (jp) c.name = jp;
+  if (en) c.nameEn = en;
+  if (!c.nameEn) c.nameEn = baseTartanCode(c).name;      /* 英語名が空なら、色から自動で付ける */
+  if (!c.name) c.name = nearestOfficial(hex).color.name + 'に近い色';   /* 日本語名が空なら、近い公式色の名前から付ける */
+  return c;
+}
+
+function updateExpertInfo() {
+  const info = document.getElementById('exInfo');
+  const hex = normalizeHex(document.getElementById('exHex').value);
+  if (!hex) { info.textContent = ''; return; }
+  const nn = nearestOfficial(hex);
+  const auto = baseTartanCode({ hex, cat: 'custom' }).name;
+  const same = nn.de < 0.5;
+  info.innerHTML = `英語名が空のときは <b>${auto}</b> になります。<br>`
+    + (same ? `近い公式色：${nn.color.id} ${nn.color.name}（ほぼ同じ色です。公式色を使うと、データがすっきりします）`
+            : `近い公式色：${nn.color.id} ${nn.color.name}（ΔE ${nn.de.toFixed(1)}）`);
+}
+
+function initExpertColor() {
+  if (!expertColorEnabled()) return;
+  document.getElementById('expertBox').style.display = 'block';
+  const hexIn = document.getElementById('exHex');
+  const pick = document.getElementById('exPick');
+  hexIn.addEventListener('input', () => {
+    const h = normalizeHex(hexIn.value);
+    if (h) pick.value = h.toLowerCase();
+    updateExpertInfo();
+  });
+  pick.addEventListener('input', () => { hexIn.value = pick.value.toUpperCase(); updateExpertInfo(); });
+  document.getElementById('exAdd').addEventListener('click', () => {
+    const hex = normalizeHex(hexIn.value);
+    if (!hex) { showToast('色コードは「#7A5236」のように、16進数6けた（または3けた）で入れてください。'); hexIn.focus(); return; }
+    const c = registerCustomColor(hex, document.getElementById('exJp').value, document.getElementById('exEn').value);
+    if (!c.custom) showToast(`137色にある色（${c.id} ${c.name}）なので、公式の色として追加しました。`);
+    addColor(c);
+  });
+  hexIn.value = pick.value.toUpperCase();
+  updateExpertInfo();
 }
 
 function updateConceptCount() {
@@ -653,7 +782,7 @@ function renderSelectedList() {
     item.innerHTML = `
       <div class="sw" style="background:${c.hex}"></div>
       <div class="info">
-        <div class="name">${c.id} ${c.name}<span class="code" title="タータン登録用の色コード">${codes[c.id].code}</span></div>
+        <div class="name">${idLabel(c)} ${c.name}<span class="code" title="タータン登録用の色コード">${codes[c.id].code}</span></div>
         <div class="hex">${c.hex}</div>
         <input type="text" class="reason" data-idx="${idx}" maxlength="20" ${dup ? 'disabled placeholder="同じ色は1つ目の理由を使います"' : 'placeholder="選定理由（20文字以内）※必須"'} value="${dup ? '' : escapeAttr(c.reason)}" aria-label="${c.name}の選定理由">
         <div class="meta-row">
@@ -1032,7 +1161,7 @@ function onCreatePoster() {
     // コード・糸数（10px）
     ctx.fillStyle = '#999';
     ctx.font = '10px serif';
-    ctx.fillText(`${c.code}  ${c.id} ${c.name} ${c.hex} ${c.threadsList.join('・')}本`, textX, by + swSize + 2);
+    ctx.fillText(`${c.code}  ${idLabel(c)} ${c.name} ${c.hex} ${c.threadsList.join('・')}本`, textX, by + swSize + 2);
   });
 
   y = listStartY + colorListHeight + 20;
@@ -1110,9 +1239,17 @@ function generateSubmissionText(orgName, concept) {
   text += `【THREADCOUNT（糸の並び・左右対称）】\n${reg.threadcount}\n\n`;
   if (hasTwoColors()) text += `【1柄の総糸数】\n${settThreadTotal()}本\n\n`;
   text += `【使用色一覧】\n`;
+  let hasNew = false;
   groupColors().forEach(c => {
-    text += `${c.code} ${c.id} ${c.name} ${c.hex} 糸数:${c.threadsList.join('・')}本 ${c.reason}\n`;
+    let line = `${c.code} ${idLabel(c)} ${c.name} ${c.hex} 糸数:${c.threadsList.join('・')}本 ${c.reason}`;
+    if (c.custom) {
+      hasNew = true;
+      const nn = nearestOfficial(c.hex);
+      line += ` ／新色：近い公式色 ${nn.color.id} ${nn.color.name}（ΔE ${nn.de.toFixed(1)}）`;
+    }
+    text += line + '\n';
   });
+  if (hasNew) text += `※「新色」は137色にない色です。ΔEは近い公式色との色の差（CIE76。小さいほど近く、約2.3以下はほぼ同じ見え方）。\n`;
   document.getElementById('submissionData').value = text;
 }
 
